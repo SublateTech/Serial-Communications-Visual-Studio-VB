@@ -1,0 +1,1187 @@
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ              I D E N T I F I C A T I O N     D I V I S I O N               ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+IDENTIFICATION DIVISION.
+PROGRAM-ID.        'TWOWAY'.
+AUTHOR.            RIMPEXCHILE.
+INSTALLATION.      RIMPEXCHILE.
+DATE-WRITTEN.      23/07/86.
+DATE-COMPILED.     26/05/92.
+SECURITY.
+REMARKS.
+    ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+    ;ณ    'TWOWAY'  es un programa general para  trans/rec  archivos.   ณ
+    ;ณ    La comunicacion se establece enviando SIGN ON, y  luego  el   ณ
+    ;ณ    nombre de un archivo SUBMIT.                                  ณ
+    ;ฦออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออต
+    ;ณ    Este es un programa de comunicaciones,  el  cual es  llamado  ณ
+    ;ณ desde  el  menu  principal.   TWOWAY  soporta   comunicacion de  ณ
+    ;ณ archivos entre PC y PTC, usando un archivo SUBMIT.               ณ
+    ;ณ    El paso de parametros entre el programa maestro y TWOWAY  se  ณ
+    ;ณ hace a traves del archivo 'FILELIST.V'.  El primer registro  de  ณ
+    ;ณ 'FILELIST.V' specifica ;                                         ณ
+    ;ณ                                                                  ณ
+    ;ณ              - tipo de host                                      ณ
+    ;ณ              - velocidad de comunicacion                         ณ
+    ;ณ              - codigo del vendedor                               ณ
+    ;ณ              - numero de telefono                                ณ
+    ;ณ              - numero de area                                    ณ
+    ;ณ                                                                  ณ
+    ;ณ    TWOWAY  reconoce 3  estados  de  comunicaciones, que son:     ณ
+    ;ณ                                                                  ณ
+    ;ณ              - Comunicacion directa                              ณ
+    ;ณ              - Comunicacion por medio de "CUNA" (CC-984, SNAP)   ณ
+    ;ณ              - Comunicacion via MODEM.                           ณ
+    ;ณ                                                                  ณ
+    ;ณ    El descriptor de archivos de 'FILELIST.V' es mostrado en este ณ
+    ;ณ programa.  Ver 'FILELIST-F' para una descripcion del  registro y ณ
+    ;ณ de los datos.                                                    ณ
+    ;ณ                                                                  ณ
+    ;ฦออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออออออออต
+    ;ณ 08/05/92 ณ  -  Se corrige modulo de  comunicacion modem para el  ณ
+    ;ณ V.R.M.P. ณ discado automatico. Se permite ademas un maximo de 3  ณ
+    ;ฦออออออออออพ digitos por numero telefonico.                        ณ
+    ;ณ             -  Las opciones para codigo de area (DDD) son :      ณ
+    ;ณ                                                                  ณ
+    ;ณ         ึฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤท       ณ
+    ;ณ         บ     - 000 = llamada local                      บ       ณ
+    ;ณ         บ     - 0xx = llamada remota                     บ       ณ
+    ;ณ         บ     - 002 = llamada remota hacia santiago      บ       ณ
+    ;ณ         ำฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฝ       ณ
+    ;ณ                                                                  ณ
+    ;ณ            NOTA : Se permite la comunicacion (Modem) solamente a ณ
+    ;ณ                   nivel nacional (Chile)                         ณ
+    ;ณ                                                                  ณ
+    ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                            ENVIRONMENT DIVISION                            ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+ENVIRONMENT DIVISION.
+CONFIGURATION section.
+SOURCE-COMPUTER.    PC.
+OBJECT-COMPUTER.    t710.
+
+SPECIAL-NAMES.
+        key NO    2.
+        key YES  14.
+
+;     The following statements are used to assign names to  the      ;
+;     special FORTH routine used for SNAP protocol for the 701X      ;
+;           *****  Should be used with  10444211.hex.   *****        ;
+;             ***  Initial release 02-14-86  cla        ***          ;
+
+        FORTH    SNAP-INIT-422      IS  0.
+        FORTH    SNAP-INIT-232      IS  1.
+        FORTH    BID-SNAP           IS  2  AUTO-WHEN.
+        FORTH    WAIT-FOR-BID-SNAP  IS  3  AUTO-WHEN.
+        FORTH    WAIT-FOR-POLL-SNAP IS  4  AUTO-WHEN  FIELD.
+        FORTH    DISABLE-422        IS  5.
+        FORTH    ENABLE-422         IS  6.
+
+  SPAD    POLL-CMD-DATA IS X'500' 0 10. ; Address of command with correct terminal
+                                        ; ID received from the HOST when waiting
+                                        ; for a POLL.  Length also includes
+                                        ; data received with command
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                                DATA DIVISION                               ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+DATA DIVISION.
+;-------------
+
+;  FD-NAME      FILE-NAME   Tipo  Modo       Descripcion
+;-----------------------------------------------------------------------
+; FILELIST-F    FILELIST     V   FIXED  Pasa lista de archivos a TWOWAY.
+;                                       Primer registro contiene veloc y
+;                                       parametros del host.
+; GLOBAL-F      GLOBAL      255  FREE   Universal  FD  to locate and
+;                                       send/rcve  files.
+
+FILE section.
+
+FD  FILELIST-F
+    recording mode is fixed             ; Lista de archivos a enviar
+    type is 'V'.                        ; y/o recibir.
+
+01 HOST-PARAMS-R.                       ; Primer registro en archivo.
+   03 TIPO-HOST-1      pic  X(3).      ; Tipo Host:'PTC','PC ','TDS'.
+   03 VELOCIDAD-1      pic  9(2).      ; Velocid:'03','12','96'.
+   03 CODI-VEND-1      pic  9(4).
+   03 TELEFONO.
+      05 NUM-AREA      pic  X(3).      ; Numero Area, '000' Local.
+      05 NUM-TELEFONO  pic  X(7).      ; Numero Telefono
+   03 SUBMIT-FILE      pic  X(8).      ; Nombre de SUBMIT en el HOST.
+   03 IDENTIF-PTC      pic  X(8).      ; Id. para POLLING.  ( CC-984 )
+   03 COMM-MODE        pic  9.         ; Tipo comunicacion
+   03 PROFILER         pic  X(8).      ; 0 Directa - 1 Modem - 2  Polling
+
+;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-;
+; NOTA :  Los tipos DISPLAY y NUMERIC almacenan los datos en formato ;
+; ======  ASCII.  Los tipos BINARY y PACKED  almacenan los datos  en ;
+;         formato BINARY.                                            ;
+; Un TDS o PC almacenan  los   datos recibidos sin conversion.  El   ;
+; programa SYS-MODE del PTC espera datos en formato HEX-ASCII no-    ;
+; empaquetado los que empaquetara antes de almacenarlos.             ;
+;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-;
+
+FD  GLOBAL-F                             ; Descriptor Archivos Univ.
+    recording mode is free               ; Se inserta un TYPE en el FCB
+    type is 255.                         ; GLOBAL-F y se abre cualquier
+                                         ; archivo para envio/recibo.
+FD  LIBRARY-FILE
+    recording mode is free
+    type is command.
+
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                          WORKING STORAGE SECTION                           ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+WORKING-STORAGE section.
+
+;****  Registros usados para enviar/recibir comandos (PICs)  ****
+
+
+01 Varios.
+   03 lOperacion        pic  9(01).   ; Used to send SIGN-ON or OFF,
+
+01 PIC-BUFFER-WR.                     ; Used to send SIGN-ON or OFF,
+                                      ; GOOD or BAD status command.
+   03 PIC-COMMAND-WS    pic  X(2).    ; Command: '00','02','80','81'.
+   03 FUNCTION-00-WS    pic  9(2).    ; Function, always '00'.
+   03 TERMINAL-ID-WS    pic  X.       ; Identifica terminal a TCOM201.
+   03 USER-ID-WR.                     ; info. de coneccion logica.
+      05 PASSWORD-WS    pic  X(3).
+      05 NUM-VEND-WS    pic  X(08).
+   03 PROFILER-WS       pic  X(08).
+   03 filler            pic  9(06).
+
+01 DUMMY-1-WR             redefines.    ; Enviar comando CREATE FILE.
+   03 filler            pic  9(2).      ; Comando, siempre '03'.
+   03 FILENAME-PC-WS    pic  X(8).      ; File name to place in TDS/PC.
+   03 FILE-EXTENTION.
+      05 DOT-WS         pic  x.
+      05 FILE-EXT-PC-WS pic  x.         ; File extension, CPM/PCDOS.
+      05 filler         pic  x(2).
+   03 LONGITUD-WS       pic  9(10).
+   03 filler            pic  X(06).
+
+01 COMANDOS-WR          redefines.
+   03 COMANDOS-WS.    
+      05 COMANDO-WS     pic X(02).
+      05 FILE-WS        pic X(22).
+   03 filler            pic x(06).
+
+01  VAR-PRUEBA.
+    03 GP-TIMER-WS      PIC 9(4).
+
+01 TEMPORALES-WR.
+   03 TERMINAL-ID       pic X(8).
+   03 ES-MODEM-POLL     pic 9 binary.   ; 0 es directo, 1 es modem
+   03 COMANDO           pic 9 binary.   ; y 2 es polling.
+   03 AUTOMAT           pic 9 binary.   ; Discado MANUAL o AUTOMATICO.
+   03 PH-LEN-TYPE       pic 99 binary.
+   03 BUFFER-WS.
+      05 BUFF-AREA-WS   pic 9(3).
+      05 BUFF-NUM-WS    pic 9(7).
+   03 LARGO-FONO        pic 99 binary.
+
+;;***  Buffers para guardar numeros telefonicos a Discar  ***
+;
+;01 AREA-WS.                             ; Permite determinar si es llamado
+;   03 AREA-1-WS      pic x.             ; local (000), o remoto (0XX).
+;   03 AREA-2-WS      pic xx.
+;
+;01 FONO-LARGO-7.                            ; Fono largo 7
+;   02 FONO-1-WS                 pic  X.
+;   02 FONO-LARGO-6.                         ; Fono largo 6
+;      03 FONO-2-WS              pic  X.
+;      03 FONO-LARGO-5.                      ; Fono largo 5
+;         04 FONO-3-WS           pic  X.
+;         04 FONO-LARGO-4.                   ; Fono largo 4
+;            05 FONO-4-WS        pic  X.
+;            05 FONO-LARGO-3.                ; Fono largo 3
+;               06 FONO-5-WS     pic  X.
+;               06 FONO-6-WS     pic  X.
+;               06 FONO-7-WS     pic  X.
+;
+;01 TELEFONO-A1.                         ; Telefono Local 7 digitos
+;   03 FONO-A1          pic   X(7).
+;
+;01 TELEFONO-A2.                         ; Telefono Local 6 digitos
+;   03 FONO-A2          pic   X(6).
+;
+;01 TELEFONO-A3.                         ; Telefono Local 5 digitos
+;   03 FONO-A3          pic   X(5).
+;
+;01 TELEFONO-A4.                         ; Telefono Local 4 digitos
+;   03 FONO-A4          pic   X(4).
+;
+;01 TELEFONO-A5.                         ; Telefono Local 3 digitos
+;   03 FONO-A5          pic   X(3).
+;
+;01 TELEFONO-B1.                         ; Telefono Larga distancia de 7 digitos
+;   03 AREA-B1          pic   X(3).
+;   03 FONO-B1          pic   X(7).
+;
+;01 TELEFONO-B2.                         ; Telefono Larga distancia de 6 digitos
+;   03 AREA-B2          pic   X(3).
+;   03 FONO-B2          pic   X(6).
+;
+;01 TELEFONO-B3.                         ; Telefono Larga distancia de 5 digitos
+;   03 AREA-B3          pic   X(3).
+;   03 FONO-B3          pic   X(5).
+;
+;01 TELEFONO-B4.                         ; Telefono Larga distancia de 4 digitos
+;   03 AREA-B4          pic   X(3).
+;   03 FONO-B4          pic   X(4).
+;
+;01 TELEFONO-B5.                         ; Telefono Larga distancia de 3 digitos
+;   03 AREA-B5          pic   X(3).
+;   03 FONO-B5          pic   X(3).
+;
+;01 TELEFONO-C1.                         ; Telefono Larga distancia de 7 digitos
+;   03 AREA-C1          pic   X(2).
+;   03 FONO-C1          pic   X(7).
+;
+;01 TELEFONO-C2.                         ; Telefono Larga distancia de 6 digitos
+;   03 AREA-C2          pic   X(2).
+;   03 FONO-C2          pic   X(6).
+;
+;01 TELEFONO-C3.                         ; Telefono Larga distancia de 5 digitos
+;   03 AREA-C3          pic   X(2).
+;   03 FONO-C3          pic   X(5).
+;
+;01 TELEFONO-C4.                         ; Telefono Larga distancia de 4 digitos
+;   03 AREA-C4          pic   X(2).
+;   03 FONO-C4          pic   X(4).
+;
+;01 TELEFONO-C5.                         ; Telefono Larga distancia de 3 digitos
+;   03 AREA-C5          pic   X(2).
+;   03 FONO-C5          pic   X(3).
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                                CHECK SECTION                               ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+check section.
+
+ch   VALID-HOST-CHK             ; Chequeo por Tipo Host valido.
+     type is lookup             ; LAST-KEY contendra OK o ER.
+     size is 3 bytes
+     occurs  1  time
+     value is 'PC '  OK.
+
+CH   VALID-BAUD-CHK                     ; Check for valid Baud Rate.
+     type is lookup                     ; LAST-KEY will equal OK or ER.
+     size is 2 bytes
+     occurs  2 times
+     value is '12'  OK                  ; 1200  baudios.
+              '96'  OK.                 ; 9600  baudios.
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                              KEYBOARD SECTION                              ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+KEYBOARD SECTION.
+
+;KD STD-KBD VALUE IS
+
+;KEYBOARD section.
+
+kd      std-710   value is
+
+; UNSHIFTED
+
+        off   DAR     ER    UAR    KEND
+        ER    ER      ER    ER     ER
+        ER    ER      ER    ER     ER
+        ER    ER      ER    ER     ER
+        ER    ER      ER    ER     ER
+      SHIFT   YES     ER    NO     CLR
+       '7'    '8'    '9'    BAR
+       '4'    '5'    '6'    FAR
+       '1'    '2'    '3'   ENTER
+       NO     '0'    ' '
+
+; shifted
+
+        off     'A'     'B'     'C'     KEND
+        'D'     'E'     'F'     'G'     'H'
+        'I'     'J'     'K'     'L'     'M'
+        'N'     'O'     'P'     'Q'     'R'
+        'S'     'T'     'U'     'V'     'W'
+       shift    'X'     'Y'     'Z'     CLR
+        ER      ER      ER      BAR
+        ER      ER      ER      FAR
+        ER      ER      ER     PLUS
+       MINUS    ER      '.'.
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                              SCREEN SECTION                                ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+SCREEN section.
+
+sd FILE-HEADER-SEND-S.
+01 FILENAME-PC-WS
+   clear
+   prompt 17, 'Enviando a PC..:'
+   mask   36, 'XXXXXXXX'.
+01 FILE-EXT-PC-WS
+   prompt 44, '.'
+   mask   45, 'X'.
+01 LONGITUD-WS                      ;1
+   mask   52, 'ZZZZZZZZZ9'.         ;33
+                                    ;49
+sd FILE-HEADER-RCVE-S.
+03 FILENAME-PC-WS
+   clear
+   prompt 17, 'Recibiendo ..:'
+   mask   36, 'XXXXXXXX'.
+03 FILE-EXT-PC-WS
+   prompt 44, '.'
+   mask   45, 'X'.
+03 LONGITUD-WS                      ;1
+   mask   52, 'ZZZZZZZZZ9'.         ;33
+
+sd FILE-HEADER-BORRA-S.
+03 FILENAME-PC-WS
+   clear
+   prompt 17, 'Borrando ....:'
+   mask   36, 'XXXXXXXX'.
+
+03 FILE-EXT-PC-WS
+   prompt 12, 3, '.'
+   mask   13, 3, 'X'.
+
+sd POLL-ID-S.
+   03 TERMINAL-ID
+      clear
+      prompt 1, 2, ' ESPERANDO POLL'
+      mask   3, 3, 'XXXXXXXX'.
+
+
+SD SUBMIT-FILE-NAME.
+03 FILENAME-PC-WS
+   clear
+   prompt 1, 1, 'Vendedor: '
+   mask 11, 1, 'XXXXXXXX'.
+
+;sd ENTRY-S.
+;03 BUFF-AREA-WS
+;   clear
+;   edit
+;   prompt 17, 'Discando  Numero (   )'
+;   mask   35, 'XXX'.
+;03 BUFF-NUM-WS
+;   mask 41, 'XXXXXXX'.
+
+;SD GP-TIMER-SD.
+;03 GP-TIMER-WS
+;   PROMPT 3, 3, 'TIMER:'
+;   MASK  10, 3, '9999'.
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                             COMMUNICATION SECTION                          ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+COMMUNICATION section.
+
+CD B-1200-COM                     ; Configuracion de 1200 baudios
+   type       is   PTAP           ; con modem.
+   baud-rate  is   1200
+   mode       is   ASCII
+   data-bits       7
+   stop-bits       1
+   parity          odd
+   first-time is   3 seconds
+   tones           BELL-202
+   device     is   INTERNAL 202-MODEM
+   nth-time   is   24 ms
+   block contains  256 bytes.
+
+CD B-19200-COM                    ; Max baud for terminal.
+   TYPE        is  PTAP
+   BAUD-RATE   is  19200
+   DATA-BITS       8
+   STOP-BITS       2
+   PARITY          ODD
+   FIRST-TIME  is  5 seconds
+   NTH-TIME    is  120 ms
+   BLOCK-DELAY is  1
+   MODE        is  TRANSPARENT
+   BLOCK CONTAINS 512 BYTES.
+
+CD SNAP-9600-COM                ; Max baud for terminal.
+   TYPE        is  SPECIAL
+   BAUD-RATE   is  4800
+   FIRST-TIME  is  5 seconds
+   NTH-TIME    is  120 ms
+   BLOCK-DELAY is  1
+   BLOCK CONTAINS 256 BYTES.
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                              PROCEDURE DIVISION                            ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+PROCEDURE DIVISION.
+;------------------
+DECLARATIVES.
+DC1.                                            ; Standard declaratives.
+    when OFF   POWER-OFF.
+    when TMOUT POWER-OFF.
+END DECLARATIVES.
+
+MAIN-0000 section.                      ; Upload files to a PC or PTC.
+;-----------------
+    perform  INITIAL-A000.
+    perform  OPEN-LIST-A100             ; Abro archivo pasado a NELOAD.
+             when ER   next.            ; No hay Archivos!.
+    perform  FILE-CHK-A200              ; Chequeo validez parametros.
+             when ER next.              ; Bad parameters passed !
+    perform  INIT-COMMODE               ; Def Teclado, Dec. y Timers.
+    perform  LOGON-A300                 ; Coneccion logica a TCOM201.
+             when ER next.              ; Couldn't logon with host !
+    perform  SEND-RCVE-A410  ;400           ; Envio/Recibo los archivos.
+             when ER next.
+    examine ES-MODEM-POLL
+            when 2 perform SIGN-OFF-POLL.
+    disconnect                               ; Bajo DTR.
+    examine ES-MODEM-POLL
+            when 2 perform PIDE-SALIDA.      ; Si es POLLING solicita salida.
+    goto MAIN-0040.
+
+MAIN-0030.
+    clear
+    disconnect                              ; Drop DTR.
+    alarm
+    message  1, '**  Error de  **'
+    message 17, ' Comunicaciones '
+    message 33, '  Presione una  '
+    message 49, '     Tecla.     '
+    ACTION
+    move ER to LAST-KEY
+    return.                             ; Vuelvo programa principal.
+
+MAIN-0040.
+    clear.
+    message  1, '* Comunicacion *'  ; Informo  al  vendedor que
+    message 17, '**  Completa  **'  ; comunicacion fue correcta
+    message 33, '  Presione una  '
+    message 49, '     Tecla.     '
+    ACTION
+    move OK to LAST-KEY
+    if lOperacion <> 1
+       move ER to LAST-KEY
+    end-if
+    return.
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ               DECLARATIVAS, INICIALIZA TECLADO, TERMINAL ID                ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+INITIAL-A000.
+;------------
+    SET-KEYBOARD     STD-710.
+    SET-DECLARATIVES DC1.
+    move 0 to ES-MODEM-POLL                   ; Coneccion directa.
+    exit.
+
+INIT-COMMODE.
+;------------
+    clear
+    message  1, ' TwoWay Ver 1.0 '
+    wait 5 tenths
+    message 16, '  Comunico Via  '
+    if COMM-MODE not = 0                     ; no es directa
+       move COMM-MODE to ES-MODEM-POLL
+       goto INIT-COMMODE-EXIT.
+    move 'I2021X' to FILE-NAME
+    open ref LIBRARY-FILE
+         when OK move 1 to ES-MODEM-POLL
+                 goto INIT-COMMODE-EXIT.
+
+INIT-COMMODE-10.
+;---------------
+    move 'SNAP1X' to FILE-NAME
+    open ref LIBRARY-FILE
+         when OK move 2 to ES-MODEM-POLL
+                 load LIBRARY-FILE.
+
+INIT-COMMODE-EXIT.
+;-----------------
+    examine ES-MODEM-POLL
+        when 0 message 33, '*** DIRECTA. ***'.
+        when 1 message 33, ' *** MODEM. *** '.
+        when 2 message 33, '*** POLLING. ***'.
+    wait 6 tenths.
+    exit.
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                     OPEN LIST OF FILES PASSED to 'UPLOAD'                  ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+OPEN-LIST-A100.
+;--------------
+    move 'FILELIST' to FILE-NAME.
+    open ref FILELIST-F
+         when ER alarm
+                 message 17, '    FILELIST    '
+                 message 33, ' NO ENCONTRADO !'
+                 wait 2 seconds
+                 clear
+                 move ER to LAST-KEY.
+    exit.
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ      Verifico validez de parametros pasados en 'FILELIST' y los salvo      ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+FILE-CHK-A200.
+;-------------
+    seek first FILELIST-F
+    read FILELIST-F
+    check TIPO-HOST-1 with VALID-HOST-CHK.
+          when ER message 49, ' Host no Valido '
+                  goto FILE-CHK-A230.
+
+FILE-CHK-A210.
+;-------------
+    check VELOCIDAD-1 with VALID-BAUD-CHK.
+          when ER clear
+                  message 17, '   Baud  Rate   '
+                  message 33, '   No  Valido   '
+                  next.
+    exit.
+
+FILE-CHK-A230.
+;-------------
+    alarm
+    wait 1 second.
+    move ER to LAST-KEY.
+    exit.
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                      Coneccion fisica y logica al HOST                     ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+LOGON-A300.
+;----------
+    examine ES-MODEM-POLL
+         when 0 next.                        ; Coneccion DIRECTA.
+       ; when 1 move '12' to VELOCIDAD-1     ; Coneccion con MODEM...
+       ;        perform ARRANGE-NUMBER       ; ...y arreglo numero telefonico.
+       ;        next.
+         when 2 execute SNAP-INIT-232.       ; Es POLLING...
+                                             ; ...e inicializo SNAP.
+
+LOGON-A310.
+;----------
+    clear
+    message 17, 'Esperando DSR...'
+    examine VELOCIDAD-1                         ; Coneccion Fisica al HOST.
+      ; when '12' perform VERIFICO-MEDIO        ; 1200 Baudios.
+      ;           connect B-1200-COM.
+        when '96' if ES-MODEM-POLL = 2
+                     connect SNAP-9600-COM      ; 9600 Baudios.
+                  else
+                     connect B-19200-COM.
+             end-when
+    no-op.
+        when ER alarm                            ; Una falla en  'CONNECT'
+                clear
+                message 17, '  DSR   PERDIDO '
+                wait 1 second
+                exit.
+
+LOGON-A320.
+;----------
+    examine ES-MODEM-POLL
+        when 0 next.                             ; Directo.
+      ; when 1 perform DIAL-NUMBER               ; Modem, y ...
+      ;             when ER exit.                ; ...disco numero ingresado.
+      ;        next.
+      ; when 2 move IDENTIF-PTC to TERMINAL-ID   ; Polling.
+      ;        show POLL-ID-S
+      ;        execute WAIT-FOR-POLL-SNAP using TERMINAL-ID
+      ;             when ER loop.
+      ;      end-when
+
+LOGON-SIGN-ON.
+;-------------
+    perform SEND-SIGN-ON-B200                  ; Coneccion logica al PC.
+    exit.                                      ; Buen exit.
+
+;VERIFICO-MEDIO.
+;;--------------
+;    clear.
+;    message  17, 'Discado  Automat'.
+;    message  33, '    Yes / No    '.
+;    action
+;       when ENTER message 49, '   *** SI ***   '
+;                  move 1 to AUTOMAT
+;                  exit.
+;       when YES   message 49, '   *** SI ***   '
+;                  move 1 to AUTOMAT
+;                  exit.
+;       when NO    message 49, '   *** NO ***   '
+;                  wait 5 tenths
+;                  move 0 to AUTOMAT
+;                  clear
+;                  message  1, 'Disque Numero de'
+;                  message 17, '  Telefono y    '
+;                  message 33, ' Presione ENTER '
+;                  action
+;                  exit.
+;    loop.
+
+;;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;;ณ                       Arreglo Numero Telefonico a Discar                   ณ
+;;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+ARRANGE-NUMBER.
+;;--------------
+;    move num-area     to area-ws.
+;    move num-telefono to fono-largo-7.
+;    move telefono     to buffer-ws.
+;    move 0            to largo-fono.
+;    move ' '          to telefono-a1.
+;    move ' '          to telefono-a2.
+;    move ' '          to telefono-a3.
+;    move ' '          to telefono-a4.
+;    move ' '          to telefono-a5.
+;
+;    move ' '          to telefono-b1.
+;    move ' '          to telefono-b2.
+;    move ' '          to telefono-b3.
+;    move ' '          to telefono-b4.
+;    move ' '          to telefono-b5.
+;
+;    move ' '          to telefono-c1.
+;    move ' '          to telefono-c2.
+;    move ' '          to telefono-c3.
+;    move ' '          to telefono-c4.
+;    move ' '          to telefono-c5.
+;
+;; Verifico el largo del numero telefonico ( 7,6,5,4,3 )
+;
+;    if fono-1-ws = '0'                           ; fono largo 6.
+;       move 1 to ph-len-type
+;       if fono-2-ws = '0'                        ; fono largo 5.
+;          move 2 to ph-len-type
+;          if fono-3-ws = '0'                     ; fono largo 4.
+;             move 3 to ph-len-type
+;             if fono-4-ws = '0'                  ; fono largo 3.
+;                move 4 to ph-len-type
+;             end-if
+;          end-if
+;       end-if
+;    else
+;       move 0 to ph-len-type                     ; fono largo 7.
+;    end-if
+;
+;; Verifico el area ( Local, Remota, Hacia Santiago )
+;
+;    if area-ws = '000'
+;       no-op                                     ; Local
+;    else
+;       if area-ws = '002'                        ; Remota a Santiago
+;          add 20 to ph-len-type
+;       else
+;          add 10 to ph-len-type                  ; Remota
+;       end-if
+;    end-if
+;;   perform JUNTA-AREA-TELEFONO.
+;    exit.
+;
+;JUNTA-AREA-TELEFONO.
+;;-------------------
+;    examine ph-len-type
+;         when 0 move fono-largo-7 to fono-a1
+;                move 7            to largo-fono.
+;         when 1 move fono-largo-6 to fono-a2
+;                move 6            to largo-fono.
+;         when 2 move fono-largo-5 to fono-a3
+;                move 5            to largo-fono.
+;         when 3 move fono-largo-4 to fono-a4
+;                move 4            to largo-fono.
+;         when 4 move fono-largo-3 to fono-a5
+;                move 3            to largo-fono.
+
+;JUNTA-AREA-001.
+;;--------------
+;    examine ph-len-type
+;         when 10 move area-ws      to area-b1
+;                 move fono-largo-7 to fono-b1
+;                 move 10           to largo-fono.
+;         when 11 move area-ws      to area-b2
+;                 move fono-largo-6 to fono-b2
+;                 move 9            to largo-fono.
+;         when 12 move area-ws      to area-b3
+;                 move fono-largo-5 to fono-b3
+;                 move 8            to largo-fono.
+;         when 13 move area-ws      to area-b4
+;                 move fono-largo-4 to fono-b4
+;                 move 7            to largo-fono.
+;         when 14 move area-ws      to area-b5
+;                 move fono-largo-3 to fono-b5
+;                 move 6            to largo-fono.
+
+;JUNTA-AREA-002.
+;;--------------
+;    examine ph-len-type
+;         when 20 move area-2-ws    to area-c1
+;                 move fono-largo-7 to fono-c1
+;                 move 9            to largo-fono.
+;         when 21 move area-2-ws    to area-c2
+;                 move fono-largo-6 to fono-c2
+;                 move 8            to largo-fono.
+;         when 22 move area-2-ws    to area-c3
+;                 move fono-largo-5 to fono-c3
+;                 move 7            to largo-fono.
+;         when 23 move area-2-ws    to area-c4
+;                 move fono-largo-4 to fono-c4
+;                 move 6            to largo-fono.
+;         when 24 move area-2-ws    to area-c5
+;                 move fono-largo-3 to fono-c5
+;                 move 5            to largo-fono.
+;    exit.
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                    Discado del Numero Telefonico al HOST                   ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+;DIAL-NUMBER.
+;;-----------
+;    if automat = 0 exit.
+;    clear.
+;    message 17, 'Esperando Linea.'.
+;    message 33, '................'.
+;    check-carrier                               ; Espero tono de linea OK
+;        when ER beep
+;                message  1, '****************'
+;                message 17, '   Imposible    '
+;                message 33, '  Tomar  linea  '
+;                message 49, '****************'
+;                action
+;                move ER to LAST-KEY
+;                exit.
+;
+;DIAL-NUMBER-001.
+;;---------------
+;    show ENTRY-S.
+;    MESSAGE 49, 'Espere..........'
+;    examine PH-LEN-TYPE
+;         when 00 dial using TELEFONO-A1, LARGO-FONO.   ; Largo 7  Local.
+;         when 01 dial using TELEFONO-A2, LARGO-FONO.   ; Largo 6  Local.
+;         when 02 dial using TELEFONO-A3, LARGO-FONO.   ; Largo 5  Local.
+;         when 03 dial using TELEFONO-A4, LARGO-FONO.   ; Largo 4  Local.
+;         when 04 dial using TELEFONO-A5, LARGO-FONO.   ; Largo 3  Local.
+;         when 10 dial using TELEFONO-B1, LARGO-FONO.   ; Largo 10 Remoto.
+;         when 11 dial using TELEFONO-B2, LARGO-FONO.   ; Largo 9  Remoto.
+;         when 12 dial using TELEFONO-B3, LARGO-FONO.   ; Largo 8  Remoto.
+;         when 13 dial using TELEFONO-B4, LARGO-FONO.   ; Largo 7  Remoto.
+;         when 14 dial using TELEFONO-B5, LARGO-FONO.   ; Largo 6  Remoto.
+;         when 20 dial using TELEFONO-C1, LARGO-FONO.   ; Largo 9  Remoto a Stgo
+;         when 21 dial using TELEFONO-C2, LARGO-FONO.   ; Largo 8  Remoto a Stgo
+;         when 22 dial using TELEFONO-C3, LARGO-FONO.   ; Largo 7  Remoto a Stgo
+;         when 23 dial using TELEFONO-C4, LARGO-FONO.   ; Largo 6  Remoto a Stgo
+;         when 24 dial using TELEFONO-C5, LARGO-FONO.   ; Largo 5  Remoto a Stgo
+;    no-op.
+;         when OK beep
+;                 message 49, ' -- EN LINEA -- '
+;                 wait 5 tenths
+;                 exit.
+;     clear.
+;     beep.
+;     message 17,  ' Fallo  discado '.
+;     wait 1 second.
+;     move ER to LAST-KEY.
+;     exit.
+;
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                    SEND/RCVE ALL FILES LISTED IN 'FILELIST'                ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+SEND-RCVE-A400.
+;--------------
+    move '08'        to PIC-COMMAND-WS  ; Executo SUBMIT FILES.
+    move SUBMIT-FILE to FILENAME-PC-WS  ; Nombre del SUBMIT FILE.
+    move '.SCO'      to FILE-EXTENTION
+    message 33, 'Codigo --> Envio'.
+    perform SEND-RCVE-COMMAND           ; Envio nombre y recibo staus.
+            when ER show SUBMIT-FILE-NAME
+                    message 17, '   Codigo No    '
+                    message 33, '   Aceptado     '
+                    action
+                    move ER to LAST-KEY
+                    clear
+                    exit.
+    beep
+    message 33, 'Coneccion Ok ...'.
+    move 0 to lOperacion
+
+SEND-RCVE-A410.
+;--------------
+    fill PIC-BUFFER-WR with ' '
+    perform RCVE-COMMAND                        ; Quedo en  modo  recepcion  de
+            when ER exit.                       ; comandos (MASTER).
+    move PIC-COMMAND-WS to COMANDO
+    examine COMANDO
+            when  2 move OK to COM-ERR                     ; Logoff
+                    exit.
+            when  3 move 1 to lOperacion
+                    perform OPEN-FILE-C000                 ; Recibo del PC.
+                            when ER exit.
+                    perform RCVE-DATA-C100.
+            when  5 perform OPEN-FILE-C000
+                            when ER exit.
+                    perform RCVE-DATA-C100.
+            when  6 perform SEND-BAD-STATUS.
+            when 10 perform OPEN-FILE-C000
+                            when ER perform SEND-BAD-STATUS
+                                    loop.
+                    perform SEND-DATA-C100.
+            when 11 perform OPEN-FILE-C000
+                            when ER perform SEND-BAD-STATUS
+                                    loop.
+                    perform SEND-DATA-C100.
+            when 12 goto SEND-RCVE-A400.
+            when 14 perform OPEN-FILE-C000
+                    if last-key = OK
+                       show FILE-HEADER-BORRA-S
+                       perform BORRA-DATA-C100 ; Borrar archivo de PTC
+                    end-if
+                    perform SEND-GOOD-STATUS
+            end-when
+
+            when 18 if FUNCTION-00-WS = '02'               ; Logoff SNAP.
+                       move 0  to GP-TIMER
+                       move OK to COM-ERR
+                       exit.
+                 end-when
+    loop.
+
+;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==;
+;*                   OPEN  A  FILE  to  SEND/RCVE                   *
+;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==;
+OPEN-FILE-C000.
+;--------------
+    move FILENAME-PC-WS to FILE-NAME               ; Tomo nombre de Archivo.
+    move FILE-EXT-PC-WS to GLOBAL-F:FD-TYPE
+    examine COMANDO
+         when  3 perform OPEN-UPDATE.
+         when  5 perform OPEN-UPDATE.
+         when 10 perform OPEN-REF.
+         when 11 perform OPEN-REF.
+         when 14 perform OPEN-UPDATE.
+    exit.
+
+OPEN-REF.
+;--------
+    open ref GLOBAL-F            ; Open file we set up to get.
+         when ER beep
+                 show FILE-HEADER-SEND-S
+                 message 1, 4,  'No esta archivo '
+                 wait 1 second
+                 clear 15.
+    exit.
+
+OPEN-UPDATE.
+;-----------
+    open update GLOBAL-F
+         when ER create GLOBAL-F
+                 loop.
+    reset GLOBAL-F
+    exit.
+
+;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==;
+;*           SEND   HEADER   AND   DATA   FOR   FILE                *
+;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==;
+SEND-DATA-C100.
+;--------------
+    perform SEND-GOOD-STATUS
+    beep
+    Move FILE-LEN to LONGITUD-WS
+    Subtract 14 from LONGITUD-WS
+    show FILE-HEADER-SEND-S
+    move '03' to PIC-COMMAND-WS                 ; Aqui, debe ser TDS o PC.
+
+SEND-DATA-C110.
+;--------------
+    if ES-MODEM-POLL = 2
+       execute BID-SNAP
+    else
+       bid.                                     ; Pido la linea para enviar
+          when ER perform SHOW-BID-ERROR        ; comandos.
+                  move ER to LAST-KEY
+                  exit.
+    send-etb COMANDOS-WS
+          when ER next.
+    if PIC-COMMAND-WS = '03'
+       SEND-ETX GLOBAL-F                   ; Don't unpack code sent to TDS/PC.
+       next.
+    SEND-ETX unpack GLOBAL-F.              ; Unpack code sent to TDS/PC.
+
+SEND-DATA-C120.
+;--------------
+    when ER perform SHOW-COM-ER-D100
+            exit.
+    perform RCVE-COMMAND                  ; Receive response from host.
+            when ER next.
+    if PIC-COMMAND-WS = '80'
+;      erase GLOBAL-F                     ; Borra archivo transmitido al PC
+       move OK to LAST-KEY
+    else
+       clear
+       beep
+       message 1, 1, ' No hay espacio '
+       message 1, 2, '   en el HOST   '
+       wait 2 seconds
+       clear
+       next.
+    exit.                                 ; Good exit.
+
+SEND-DATA-C130.
+;--------------
+    move ER to LAST-KEY.             ; Return ER to caller.
+    exit.
+
+
+;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==;
+;           ENVIO  ENCABEZADO  Y  RECIBO  DATA  DE  ARCHIVO         ;
+;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==;
+RCVE-DATA-C100.
+;--------------
+    beep
+    show FILE-HEADER-RCVE-S
+
+RCVE-DATA-C120.
+;--------------
+    if PIC-COMMAND-WS = '03'
+       receive-block GLOBAL-F
+    else
+       receive-block pack GLOBAL-F.
+    no-op
+       when ER    perform SHOW-COM-ER-D100
+                  next.
+       when EXTIN loop.
+       when MEM   ; erase GLOBAL-F
+                  clear
+                  beep
+                  message 1, 1, 'No hay Suficient'
+                  message 1, 2, ' >  MEMORIA   < '
+                  wait 2 seconds
+                  clear
+                  next.
+    perform SEND-GOOD-STATUS            ; ACk de recibo.
+            when ER next.
+    move OK to LAST-KEY.
+    exit.                               ; Good exit.
+
+RCVE-DATA-C130.
+;--------------
+     move ER to LAST-KEY
+     exit.
+
+
+;********************************************************************;
+;*             WAIT  FOR  A  RESPONSE  FROM  THE  HOST               ;
+;********************************************************************;
+RCVE-COMMAND.                           ; Receive command from host.
+;------------
+    if ES-MODEM-POLL = 2
+       execute WAIT-FOR-BID-SNAP
+    else
+       wait-for-bid.               ; Wait 10 secs. for ENQ.
+         when ER  clear
+                  beep
+                  message 1, 'NO BID RECEIVED '
+                  next.
+         when EOF clear
+                  beep
+                  message 1, 'HANG UP RECEIVED'
+                  next.
+    fill PIC-BUFFER-WR WITH ' '.
+    receive-block PIC-BUFFER-WR.        ; Get command from host.
+         when ER  perform SHOW-COM-ER-D100
+                  next.
+    exit.                               ; Good exit.
+
+RECV-CMD-D010.
+;-------------
+    alarm
+    wait 5 tenths
+    clear 16
+    move ER to LAST-KEY
+    exit.                            ; Error exit.
+
+;********************************************************************;
+;                  ENVIO  ACK  DE  RECIBO AL  HOST                   ;
+;********************************************************************;
+SEND-COMMAND.
+;------------
+    if ES-MODEM-POLL = 2
+       execute BID-SNAP
+    else
+       bid                                          ; Pido la linea para enviar
+         when ER bid
+              when ER bid
+                   when ER perform SHOW-BID-ERROR   ; comandos
+                           move ER to LAST-KEY
+                           exit
+                   end-when
+              end-when
+         end-when
+    end-if
+    send-etx PIC-BUFFER-WR
+         when ER perform SHOW-COM-ER-D100
+                 move ER to LAST-KEY.
+    exit.
+
+SEND-RCVE-COMMAND.
+;-----------------
+    perform SEND-COMMAND
+            when ER exit.
+    if ES-MODEM-POLL = 2
+       execute WAIT-FOR-BID-SNAP
+    else
+       wait-for-bid.                       ; Espera por un ENQ y luego envกa
+          when ER clear                    ; un ACK0 (EOT si recibe NAK).
+                  beep
+                  message 1, 'No recibido BID '
+                  wait 1 second
+                  clear
+                  exit.
+    receive-block PIC-COMMAND-WS
+          when ER clear
+                  beep
+                  message 1,  'Error Recepcion '
+                  wait 1 second
+                  clear 16
+                  exit.
+    if PIC-COMMAND-WS NE '80'
+       move ER to LAST-KEY
+    else
+       move OK to LAST-KEY.
+    exit.
+
+
+;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ
+;ณ                    USED  WITH  'PC'.   SEND  SIGN  ON.                     ณ
+;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ
+SEND-SIGN-ON-B200.
+;-----------------
+    clear.                              ; Borro display durante
+    beep
+    message 17, 'Enviando codigo.'.
+    fill PIC-BUFFER-WR WITH ' '.        ; comunicacion..
+    move '01'        to PIC-COMMAND-WS  ; Sign on command.
+    move '00'        to FUNCTION-00-WS
+    move 'X'         to TERMINAL-ID-WS
+    move 'AMG'       to PASSWORD-WS     ; Password de acceso.
+    move PROFILER    to PROFILER-WS     ; Profiler
+    move SUBMIT-FILE to NUM-VEND-WS     ; Codigo del vendedor.
+    perform SEND-RCVE-COMMAND           ; Envio comando Y recibo status.
+         when OK beep
+                 message 33, 'Codigo Aceptado.'.
+    exit.                               ; Good exit.
+
+;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==;
+;                       SIGN  OFF  WITH  HOST                       ;
+;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==;
+
+SIGN-OFF-POLL.
+    fill PIC-BUFFER-WR WITH ' '
+    move '02' to PIC-COMMAND-WS         ; Sign-off command.
+    move '00' to FUNCTION-00-WS
+    move 'X'  to TERMINAL-ID-WS
+    perform SEND-COMMAND
+    exit.
+
+
+;********************************************************************;
+;*                 ENVIO  ACK  DE  RECIBO AL  HOST                   ;
+;********************************************************************;
+SEND-GOOD-STATUS.
+;----------------
+    move '80' to PIC-COMMAND-WS        ; Buen status.
+    perform SEND-COMMAND-STATUS
+           when ER clear
+                   message  1, ' Error en envio '
+                   message 17, '   de  status   '
+                   wait 1 second
+                   clear.
+    exit.
+
+;********************************************************************;
+;*                 ENVIO  NACK  DE  RECIBO AL  HOST                  ;
+;********************************************************************;
+SEND-BAD-STATUS.
+;---------------
+    fill PIC-BUFFER-WR WITH ' '.
+    move '81' to PIC-COMMAND-WS                           ; Mal status.
+    perform SEND-COMMAND-STATUS
+            when ER clear
+                    message  1, ' Error en envio '
+                    message 17, '  de  status    '
+                    wait 1 second
+                    clear.
+    exit.
+
+;********************************************************************;
+;*                 ENVIO  BID  DE  STATUS  AL  HOST                  ;
+;********************************************************************;
+
+SEND-COMMAND-STATUS.
+;-------------------
+    if ES-MODEM-POLL = 2
+       execute BID-SNAP
+    else
+       bid.
+          when ER exit.
+    send-etx PIC-COMMAND-WS
+          when ER perform SHOW-COM-ER-D100
+                  move ER to LAST-KEY.
+    exit.
+
+PIDE-SALIDA.
+    clear
+    message 1, 2, 'Vaciado Completo'
+    message 1, 3, 'Vuelve menu(Y/N)'
+    action
+           when YES clear
+                    exit.
+    loop.
+
+$eject
+;********************************************************************
+;*      show  USER  THE  REASON  FOR  A  COMMUNICATION  ERROR       *
+;********************************************************************
+SHOW-COM-ER-D100.
+;----------------
+    clear.
+    examine COM-ERR.                                ; Registro contiene causa.
+        when 1  message 17, 'ERROR DE PARIDAD'.     ; Error de paridad.
+        when 2  message 17, ' MUCHOS CARACTS '.     ; Demasiados chars. rcvd.
+        when 3  message 17, '  DSR  PERDIDO  '.     ; Disconnected, lost DSR.
+        when 4  message 17, '  ERROR de BCC  '.     ; BCC error.
+        when 5  message 17, '  1ST CHAR ERR  '.     ; First char error/no data.
+        when 6  message 17, ' LAST CHAR  ERR '.     ; Last char error.
+        when 7  message 17, ' CHEQUEO DE ECO '.     ; Echo check, Network only.
+        when 8  message 17, '  RCVR OVERRUN  '.     ; Receiver overrun.
+        when 9  message 17, '  FRAMING  ERR  '.     ; Framing error.
+        when 10 message 17, ' MUCHOS  RETRYS '.     ; Too many retrys.
+    wait  1  second.
+    clear.
+    move ER to LAST-KEY.
+    exit.
+
+;********************************************************************;
+;               GIVE   USER   A   BID   ERROR   MESSAGE               ;
+;********************************************************************;
+SHOW-BID-ERROR.
+;--------------
+    alarm.
+    message 49, '  Error  Bid !  '.
+    wait 2 seconds.
+    clear 15.
+    move ER to LAST-KEY.
+    exit.
+
+BORRA-DATA-C100.
+;---------------
+    erase GLOBAL-F
+    move OK to LAST-KEY
+EXIT.
+
+END-OF-PROGRAM.

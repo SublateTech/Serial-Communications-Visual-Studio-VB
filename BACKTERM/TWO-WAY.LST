@@ -1,0 +1,1309 @@
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:    1 
+COMPILATION OF: TWO-WAY.tca 
+   1   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+   2   ;ณ              I D E N T I F I C A T I O N     D I V I S I O N               ณ 
+   3   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+   4   IDENTIFICATION DIVISION. 
+   5   PROGRAM-ID.        'TWOWAY'. 
+   6   AUTHOR.            RIMPEXCHILE. 
+   7   INSTALLATION.      RIMPEXCHILE. 
+   8   DATE-WRITTEN.      23/07/86. 
+   9   DATE-COMPILED.     26/05/92. 
+Tue May 07 22:32:11 1996
+  10   SECURITY. 
+  11   REMARKS. 
+  12       ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+  13       ;ณ    'TWOWAY'  es un programa general para  trans/rec  archivos.   ณ 
+  14       ;ณ    La comunicacion se establece enviando SIGN ON, y  luego  el   ณ 
+  15       ;ณ    nombre de un archivo SUBMIT.                                  ณ 
+  16       ;ฦออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออต 
+  17       ;ณ    Este es un programa de comunicaciones,  el  cual es  llamado  ณ 
+  18       ;ณ desde  el  menu  principal.   TWOWAY  soporta   comunicacion de  ณ 
+  19       ;ณ archivos entre PC y PTC, usando un archivo SUBMIT.               ณ 
+  20       ;ณ    El paso de parametros entre el programa maestro y TWOWAY  se  ณ 
+  21       ;ณ hace a traves del archivo 'FILELIST.V'.  El primer registro  de  ณ 
+  22       ;ณ 'FILELIST.V' specifica ;                                         ณ 
+  23       ;ณ                                                                  ณ 
+  24       ;ณ              - tipo de host                                      ณ 
+  25       ;ณ              - velocidad de comunicacion                         ณ 
+  26       ;ณ              - codigo del vendedor                               ณ 
+  27       ;ณ              - numero de telefono                                ณ 
+  28       ;ณ              - numero de area                                    ณ 
+  29       ;ณ                                                                  ณ 
+  30       ;ณ    TWOWAY  reconoce 3  estados  de  comunicaciones, que son:     ณ 
+  31       ;ณ                                                                  ณ 
+  32       ;ณ              - Comunicacion directa                              ณ 
+  33       ;ณ              - Comunicacion por medio de "CUNA" (CC-984, SNAP)   ณ 
+  34       ;ณ              - Comunicacion via MODEM.                           ณ 
+  35       ;ณ                                                                  ณ 
+  36       ;ณ    El descriptor de archivos de 'FILELIST.V' es mostrado en este ณ 
+  37       ;ณ programa.  Ver 'FILELIST-F' para una descripcion del  registro y ณ 
+  38       ;ณ de los datos.                                                    ณ 
+  39       ;ณ                                                                  ณ 
+  40       ;ฦออออออออออัอออออออออออออออออออออออออออออออออออออออออออออออออออออออต 
+  41       ;ณ 08/05/92 ณ  -  Se corrige modulo de  comunicacion modem para el  ณ 
+  42       ;ณ V.R.M.P. ณ discado automatico. Se permite ademas un maximo de 3  ณ 
+  43       ;ฦออออออออออพ digitos por numero telefonico.                        ณ 
+  44       ;ณ             -  Las opciones para codigo de area (DDD) son :      ณ 
+  45       ;ณ                                                                  ณ 
+  46       ;ณ         ึฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤท       ณ 
+  47       ;ณ         บ     - 000 = llamada local                      บ       ณ 
+  48       ;ณ         บ     - 0xx = llamada remota                     บ       ณ 
+  49       ;ณ         บ     - 002 = llamada remota hacia santiago      บ       ณ 
+  50       ;ณ         ำฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฝ       ณ 
+  51       ;ณ                                                                  ณ 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:    2 
+COMPILATION OF: TWO-WAY.tca 
+  52       ;ณ            NOTA : Se permite la comunicacion (Modem) solamente a ณ 
+  53       ;ณ                   nivel nacional (Chile)                         ณ 
+  54       ;ณ                                                                  ณ 
+  55       ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+  56    
+  57   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+  58   ;ณ                            ENVIRONMENT DIVISION                            ณ 
+  59   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+  60   ENVIRONMENT DIVISION. 
+  61   CONFIGURATION section. 
+  62   SOURCE-COMPUTER.    PC. 
+  63   OBJECT-COMPUTER.    t710. 
+  64    
+  65   SPECIAL-NAMES. 
+  66           key NO    2. 
+  67           key YES  14. 
+  68    
+  69   ;     The following statements are used to assign names to  the      ; 
+  70   ;     special FORTH routine used for SNAP protocol for the 701X      ; 
+  71   ;           *****  Should be used with  10444211.hex.   *****        ; 
+  72   ;             ***  Initial release 02-14-86  cla        ***          ; 
+  73    
+  74           FORTH    SNAP-INIT-422      IS  0. 
+  75           FORTH    SNAP-INIT-232      IS  1. 
+  76           FORTH    BID-SNAP           IS  2  AUTO-WHEN. 
+  77           FORTH    WAIT-FOR-BID-SNAP  IS  3  AUTO-WHEN. 
+  78           FORTH    WAIT-FOR-POLL-SNAP IS  4  AUTO-WHEN  FIELD. 
+  79           FORTH    DISABLE-422        IS  5. 
+  80           FORTH    ENABLE-422         IS  6. 
+  81    
+  82     SPAD    POLL-CMD-DATA IS X'500' 0 10. ; Address of command with correct terminal 
+  83                                           ; ID received from the HOST when waiting 
+  84                                           ; for a POLL.  Length also includes 
+  85                                           ; data received with command 
+  86    
+  87   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+  88   ;ณ                                DATA DIVISION                               ณ 
+  89   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+  90   DATA DIVISION. 
+  91   ;------------- 
+  92    
+  93   ;  FD-NAME      FILE-NAME   Tipo  Modo       Descripcion 
+  94   ;----------------------------------------------------------------------- 
+  95   ; FILELIST-F    FILELIST     V   FIXED  Pasa lista de archivos a TWOWAY. 
+  96   ;                                       Primer registro contiene veloc y 
+  97   ;                                       parametros del host. 
+  98   ; GLOBAL-F      GLOBAL      255  FREE   Universal  FD  to locate and 
+  99   ;                                       send/rcve  files. 
+ 100    
+ 101   FILE section. 
+ 102    
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:    3 
+COMPILATION OF: TWO-WAY.tca 
+ 103   FD  FILELIST-F 
+ 104       recording mode is fixed             ; Lista de archivos a enviar 
+ 105       type is 'V'.                        ; y/o recibir. 
+ 106    
+ 107   01 HOST-PARAMS-R.                       ; Primer registro en archivo. 
+ 108      03  TIPO-HOST-1      pic  X(3).      ; Tipo Host:'PTC','PC ','TDS'. 
+ 109      03  VELOCIDAD-1      pic  9(2).      ; Velocid:'03','12','96'. 
+ 110      03  CODI-VEND-1      pic  9(4). 
+ 111      03  TELEFONO. 
+ 112          05 NUM-AREA      pic  X(3).      ; Numero Area, '000' Local. 
+ 113          05 NUM-TELEFONO  pic  X(7).      ; Numero Telefono 
+ 114      03  SUBMIT-FILE      pic  X(8).      ; Nombre de SUBMIT en el HOST. 
+ 115      03  IDENTIF-PTC      pic  X(8).      ; Id. para POLLING.  ( CC-984 ) 
+ 116      03  COMM-MODE        pic  9.         ; Tipo comunicacion 
+ 117      03  filler           pic  X(8).      ; 0 Directa - 1 Modem - 2  Polling 
+ 118    
+ 119   ;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-; 
+ 120   ; NOTA :  Los tipos DISPLAY y NUMERIC almacenan los datos en formato ; 
+ 121   ; ======  ASCII.  Los tipos BINARY y PACKED  almacenan los datos  en ; 
+ 122   ;         formato BINARY.                                            ; 
+ 123   ; Un TDS o PC almacenan  los   datos recibidos sin conversion.  El   ; 
+ 124   ; programa SYS-MODE del PTC espera datos en formato HEX-ASCII no-    ; 
+ 125   ; empaquetado los que empaquetara antes de almacenarlos.             ; 
+ 126   ;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-; 
+ 127    
+ 128   FD  GLOBAL-F                             ; Descriptor Archivos Univ. 
+ 129       recording mode is free               ; Se inserta un TYPE en el FCB 
+ 130       type is 255.                         ; GLOBAL-F y se abre cualquier 
+ 131                                            ; archivo para envio/recibo. 
+ 132   FD  LIBRARY-FILE 
+ 133       recording mode is free 
+ 134       type is command. 
+ 135    
+ 136    
+ 137   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 138   ;ณ                          WORKING STORAGE SECTION                           ณ 
+ 139   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 140   WORKING-STORAGE section. 
+ 141    
+ 142   ;****  Registros usados para enviar/recibir comandos (PICs)  **** 
+ 143    
+ 144    
+ 145   01 Varios. 
+ 146      03 lOperacion        pic  9(01).   ; Used to send SIGN-ON or OFF, 
+ 147    
+ 148   01 PIC-BUFFER-WR.                     ; Used to send SIGN-ON or OFF, 
+ 149                                         ; GOOD or BAD status command. 
+ 150      03 PIC-COMMAND-WS    pic  X(2).    ; Command: '00','02','80','81'. 
+ 151      03 FUNCTION-00-WS    pic  9(2).    ; Function, always '00'. 
+ 152      03 TERMINAL-ID-WS    pic  X.       ; Identifica terminal a TCOM201. 
+ 153      03 USER-ID-WR.                     ; info. de coneccion logica. 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:    4 
+COMPILATION OF: TWO-WAY.tca 
+ 154         05 VND-DESC-WS    pic  X(3). 
+ 155         05 NUM-VEND-WS    pic  X(08). 
+ 156      03 filler            pic  9(14). 
+ 157    
+ 158   01 DUMMY-1-WR             redefines.    ; Enviar comando CREATE FILE. 
+ 159      03 filler            pic  9(2).      ; Comando, siempre '03'. 
+ 160      03 FILENAME-PC-WS    pic  X(8).      ; File name to place in TDS/PC. 
+ 161      03 FILE-EXTENTION. 
+ 162         05 DOT-WS         pic  x. 
+ 163         05 FILE-EXT-PC-WS pic  x.         ; File extension, CPM/PCDOS. 
+ 164         05 filler         pic  x(2). 
+ 165      03 filler            pic  X(16). 
+ 166    
+ 167   01 COMANDOS-WR          redefines. 
+ 168      03 COMANDOS-WS       pic x(12). 
+ 169      03 filler            pic x(18). 
+ 170    
+ 171   01  VAR-PRUEBA. 
+ 172       03 GP-TIMER-WS      PIC 9(4). 
+ 173    
+ 174   01 TEMPORALES-WR. 
+ 175      03 TERMINAL-ID       pic X(8). 
+ 176      03 ES-MODEM-POLL     pic 9 binary.   ; 0 es directo, 1 es modem 
+ 177      03 COMANDO           pic 9 binary.   ; y 2 es polling. 
+ 178      03 AUTOMAT           pic 9 binary.   ; Discado MANUAL o AUTOMATICO. 
+ 179      03 PH-LEN-TYPE       pic 99 binary. 
+ 180      03 BUFFER-WS. 
+ 181         05 BUFF-AREA-WS   pic 9(3). 
+ 182         05 BUFF-NUM-WS    pic 9(7). 
+ 183      03 LARGO-FONO        pic 99 binary. 
+ 184    
+ 185   ;;***  Buffers para guardar numeros telefonicos a Discar  *** 
+ 186   ; 
+ 187   ;01 AREA-WS.                             ; Permite determinar si es llamado 
+ 188   ;   03 AREA-1-WS      pic x.             ; local (000), o remoto (0XX). 
+ 189   ;   03 AREA-2-WS      pic xx. 
+ 190   ; 
+ 191   ;01 FONO-LARGO-7.                            ; Fono largo 7 
+ 192   ;   02 FONO-1-WS                 pic  X. 
+ 193   ;   02 FONO-LARGO-6.                         ; Fono largo 6 
+ 194   ;      03 FONO-2-WS              pic  X. 
+ 195   ;      03 FONO-LARGO-5.                      ; Fono largo 5 
+ 196   ;         04 FONO-3-WS           pic  X. 
+ 197   ;         04 FONO-LARGO-4.                   ; Fono largo 4 
+ 198   ;            05 FONO-4-WS        pic  X. 
+ 199   ;            05 FONO-LARGO-3.                ; Fono largo 3 
+ 200   ;               06 FONO-5-WS     pic  X. 
+ 201   ;               06 FONO-6-WS     pic  X. 
+ 202   ;               06 FONO-7-WS     pic  X. 
+ 203   ; 
+ 204   ;01 TELEFONO-A1.                         ; Telefono Local 7 digitos 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:    5 
+COMPILATION OF: TWO-WAY.tca 
+ 205   ;   03 FONO-A1          pic   X(7). 
+ 206   ; 
+ 207   ;01 TELEFONO-A2.                         ; Telefono Local 6 digitos 
+ 208   ;   03 FONO-A2          pic   X(6). 
+ 209   ; 
+ 210   ;01 TELEFONO-A3.                         ; Telefono Local 5 digitos 
+ 211   ;   03 FONO-A3          pic   X(5). 
+ 212   ; 
+ 213   ;01 TELEFONO-A4.                         ; Telefono Local 4 digitos 
+ 214   ;   03 FONO-A4          pic   X(4). 
+ 215   ; 
+ 216   ;01 TELEFONO-A5.                         ; Telefono Local 3 digitos 
+ 217   ;   03 FONO-A5          pic   X(3). 
+ 218   ; 
+ 219   ;01 TELEFONO-B1.                         ; Telefono Larga distancia de 7 digitos 
+ 220   ;   03 AREA-B1          pic   X(3). 
+ 221   ;   03 FONO-B1          pic   X(7). 
+ 222   ; 
+ 223   ;01 TELEFONO-B2.                         ; Telefono Larga distancia de 6 digitos 
+ 224   ;   03 AREA-B2          pic   X(3). 
+ 225   ;   03 FONO-B2          pic   X(6). 
+ 226   ; 
+ 227   ;01 TELEFONO-B3.                         ; Telefono Larga distancia de 5 digitos 
+ 228   ;   03 AREA-B3          pic   X(3). 
+ 229   ;   03 FONO-B3          pic   X(5). 
+ 230   ; 
+ 231   ;01 TELEFONO-B4.                         ; Telefono Larga distancia de 4 digitos 
+ 232   ;   03 AREA-B4          pic   X(3). 
+ 233   ;   03 FONO-B4          pic   X(4). 
+ 234   ; 
+ 235   ;01 TELEFONO-B5.                         ; Telefono Larga distancia de 3 digitos 
+ 236   ;   03 AREA-B5          pic   X(3). 
+ 237   ;   03 FONO-B5          pic   X(3). 
+ 238   ; 
+ 239   ;01 TELEFONO-C1.                         ; Telefono Larga distancia de 7 digitos 
+ 240   ;   03 AREA-C1          pic   X(2). 
+ 241   ;   03 FONO-C1          pic   X(7). 
+ 242   ; 
+ 243   ;01 TELEFONO-C2.                         ; Telefono Larga distancia de 6 digitos 
+ 244   ;   03 AREA-C2          pic   X(2). 
+ 245   ;   03 FONO-C2          pic   X(6). 
+ 246   ; 
+ 247   ;01 TELEFONO-C3.                         ; Telefono Larga distancia de 5 digitos 
+ 248   ;   03 AREA-C3          pic   X(2). 
+ 249   ;   03 FONO-C3          pic   X(5). 
+ 250   ; 
+ 251   ;01 TELEFONO-C4.                         ; Telefono Larga distancia de 4 digitos 
+ 252   ;   03 AREA-C4          pic   X(2). 
+ 253   ;   03 FONO-C4          pic   X(4). 
+ 254   ; 
+ 255   ;01 TELEFONO-C5.                         ; Telefono Larga distancia de 3 digitos 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:    6 
+COMPILATION OF: TWO-WAY.tca 
+ 256   ;   03 AREA-C5          pic   X(2). 
+ 257   ;   03 FONO-C5          pic   X(3). 
+ 258    
+ 259   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 260   ;ณ                                CHECK SECTION                               ณ 
+ 261   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 262   check section. 
+ 263    
+ 264   ch   VALID-HOST-CHK             ; Chequeo por Tipo Host valido. 
+ 265        type is lookup             ; LAST-KEY contendra OK o ER. 
+ 266        size is 3 bytes 
+ 267        occurs  1  time 
+ 268        value is 'PC '  OK. 
+ 269    
+ 270   CH   VALID-BAUD-CHK                     ; Check for valid Baud Rate. 
+ 271        type is lookup                     ; LAST-KEY will equal OK or ER. 
+ 272        size is 2 bytes 
+ 273        occurs  2 times 
+ 274        value is '12'  OK                  ; 1200  baudios. 
+ 275                 '96'  OK.                 ; 9600  baudios. 
+ 276    
+ 277   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 278   ;ณ                              KEYBOARD SECTION                              ณ 
+ 279   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 280   KEYBOARD SECTION. 
+ 281    
+ 282   ;KD STD-KBD VALUE IS 
+ 283    
+ 284   ;KEYBOARD section. 
+ 285    
+ 286   kd      std-710   value is 
+ 287    
+ 288   ; UNSHIFTED 
+ 289    
+ 290           off   DAR     ER    UAR    KEND 
+ 291           ER    ER      ER    ER     ER 
+ 292           ER    ER      ER    ER     ER 
+ 293           ER    ER      ER    ER     ER 
+ 294           ER    ER      ER    ER     ER 
+ 295         SHIFT   YES     ER    NO     CLR 
+ 296          '7'    '8'    '9'    BAR 
+ 297          '4'    '5'    '6'    FAR 
+ 298          '1'    '2'    '3'   ENTER 
+ 299          NO     '0'    ' ' 
+ 300    
+ 301   ; shifted 
+ 302    
+ 303           off     'A'     'B'     'C'     KEND 
+ 304           'D'     'E'     'F'     'G'     'H' 
+ 305           'I'     'J'     'K'     'L'     'M' 
+ 306           'N'     'O'     'P'     'Q'     'R' 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:    7 
+COMPILATION OF: TWO-WAY.tca 
+ 307           'S'     'T'     'U'     'V'     'W' 
+ 308          shift    'X'     'Y'     'Z'     CLR 
+ 309           ER      ER      ER      BAR 
+ 310           ER      ER      ER      FAR 
+ 311           ER      ER      ER     PLUS 
+ 312          MINUS    ER      '.'. 
+ 313    
+ 314   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 315   ;ณ                              SCREEN SECTION                                ณ 
+ 316   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 317   SCREEN section. 
+ 318    
+ 319   sd FILE-HEADER-SEND-S. 
+ 320   03 FILENAME-PC-WS 
+ 321      clear 
+ 322      prompt 17, 'Enviando a PC..:' 
+ 323      mask   36, 'XXXXXXXX'. 
+ 324   03 FILE-EXT-PC-WS 
+ 325      prompt 44, '.' 
+ 326      mask   45, 'X'. 
+ 327    
+ 328   sd FILE-HEADER-RCVE-S. 
+ 329   03 FILENAME-PC-WS 
+ 330      clear 
+ 331      prompt 17, 'Recibiendo ..:' 
+ 332      mask   36, 'XXXXXXXX'. 
+ 333   03 FILE-EXT-PC-WS 
+ 334      prompt 44, '.' 
+ 335      mask   45, 'X'. 
+ 336    
+ 337   sd FILE-HEADER-BORRA-S. 
+ 338   03 FILENAME-PC-WS 
+ 339      clear 
+ 340      prompt 17, 'Borrando ....:' 
+ 341      mask   36, 'XXXXXXXX'. 
+ 342    
+ 343   03 FILE-EXT-PC-WS 
+ 344      prompt 12, 3, '.' 
+ 345      mask   13, 3, 'X'. 
+ 346    
+ 347   sd POLL-ID-S. 
+ 348      03 TERMINAL-ID 
+ 349         clear 
+ 350         prompt 1, 2, ' ESPERANDO POLL' 
+ 351         mask   3, 3, 'XXXXXXXX'. 
+ 352    
+ 353    
+ 354   SD SUBMIT-FILE-NAME. 
+ 355   03 FILENAME-PC-WS 
+ 356      clear 
+ 357      prompt 1, 1, 'Vendedor: ' 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:    8 
+COMPILATION OF: TWO-WAY.tca 
+ 358      mask 11, 1, 'XXXXXXXX'. 
+ 359    
+ 360   ;sd ENTRY-S. 
+ 361   ;03 BUFF-AREA-WS 
+ 362   ;   clear 
+ 363   ;   edit 
+ 364   ;   prompt 17, 'Discando  Numero (   )' 
+ 365   ;   mask   35, 'XXX'. 
+ 366   ;03 BUFF-NUM-WS 
+ 367   ;   mask 41, 'XXXXXXX'. 
+ 368    
+ 369   ;SD GP-TIMER-SD. 
+ 370   ;03 GP-TIMER-WS 
+ 371   ;   PROMPT 3, 3, 'TIMER:' 
+ 372   ;   MASK  10, 3, '9999'. 
+ 373    
+ 374   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 375   ;ณ                             COMMUNICATION SECTION                          ณ 
+ 376   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 377   COMMUNICATION section. 
+ 378    
+ 379   CD B-1200-COM                     ; Configuracion de 1200 baudios 
+ 380      type       is   PTAP           ; con modem. 
+ 381      baud-rate  is   1200 
+ 382      mode       is   ASCII 
+ 383      data-bits       7 
+ 384      stop-bits       1 
+ 385      parity          odd 
+ 386      first-time is   3 seconds 
+ 387      tones           BELL-202 
+ 388      device     is   INTERNAL 202-MODEM 
+ 389      nth-time   is   24 ms 
+ 390      block contains  256 bytes. 
+ 391    
+ 392   CD B-9600-COM                    ; Max baud for terminal. 
+ 393      TYPE        is  PTAP 
+ 394      BAUD-RATE   is  19200 
+ 395      DATA-BITS       7 
+ 396      STOP-BITS       1 
+ 397      PARITY          ODD 
+ 398      FIRST-TIME  is  5 seconds 
+ 399      NTH-TIME    is  120 ms 
+ 400      BLOCK-DELAY is  1 
+ 401      BLOCK CONTAINS 512 BYTES. 
+ 402    
+ 403   CD SNAP-9600-COM                ; Max baud for terminal. 
+ 404      TYPE        is  SPECIAL 
+ 405      BAUD-RATE   is  4800 
+ 406      FIRST-TIME  is  5 seconds 
+ 407      NTH-TIME    is  120 ms 
+ 408      BLOCK-DELAY is  1 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:    9 
+COMPILATION OF: TWO-WAY.tca 
+ 409      BLOCK CONTAINS 256 BYTES. 
+ 410    
+ 411   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 412   ;ณ                              PROCEDURE DIVISION                            ณ 
+ 413   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 414   PROCEDURE DIVISION. 
+ 415   ;------------------ 
+ 416   DECLARATIVES. 
+ 417   DC1.                                            ; Standard declaratives. 
+ 418       when OFF   POWER-OFF. 
+ 419       when TMOUT POWER-OFF. 
+ 420   END DECLARATIVES. 
+ 421    
+ 422   MAIN-0000 section.                      ; Upload files to a PC or PTC. 
+ 423   ;----------------- 
+ 424       perform  INITIAL-A000. 
+ 425       perform  OPEN-LIST-A100             ; Abro archivo pasado a NELOAD. 
+ 426                when ER   next.            ; No hay Archivos!. 
+ 427       perform  FILE-CHK-A200              ; Chequeo validez parametros. 
+ 428                when ER next.              ; Bad parameters passed ! 
+ 429       perform  INIT-COMMODE               ; Def Teclado, Dec. y Timers. 
+ 430       perform  LOGON-A300                 ; Coneccion logica a TCOM201. 
+ 431                when ER next.              ; Couldn't logon with host ! 
+ 432       perform  SEND-RCVE-A410  ;400           ; Envio/Recibo los archivos. 
+ 433                when ER next. 
+ 434       examine ES-MODEM-POLL 
+ 435               when 2 perform SIGN-OFF-POLL. 
+ 436       disconnect                               ; Bajo DTR. 
+ 437       examine ES-MODEM-POLL 
+ 438               when 2 perform PIDE-SALIDA.      ; Si es POLLING solicita salida. 
+ 439       goto MAIN-0040. 
+ 440    
+ 441   MAIN-0030. 
+ 442       clear 
+ 443       disconnect                              ; Drop DTR. 
+ 444       alarm 
+ 445       message  1, '**  Error de  **' 
+ 446       message 17, ' Comunicaciones ' 
+ 447       message 33, '  Presione una  ' 
+ 448       message 49, '     Tecla.     ' 
+ 449       ACTION 
+ 450       move ER to LAST-KEY 
+ 451       return.                             ; Vuelvo programa principal. 
+ 452    
+ 453   MAIN-0040. 
+ 454       clear. 
+ 455       message  1, '* Comunicacion *'  ; Informo  al  vendedor que 
+ 456       message 17, '**  Completa  **'  ; comunicacion fue correcta 
+ 457       message 33, '  Presione una  ' 
+ 458       message 49, '     Tecla.     ' 
+ 459       ACTION 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   10 
+COMPILATION OF: TWO-WAY.tca 
+ 460       move OK to LAST-KEY 
+ 461       if lOperacion <> 1 
+ 462          move ER to LAST-KEY 
+ 463       end-if 
+ 464       return. 
+ 465    
+ 466   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 467   ;ณ               DECLARATIVAS, INICIALIZA TECLADO, TERMINAL ID                ณ 
+ 468   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 469   INITIAL-A000. 
+ 470   ;------------ 
+ 471       SET-KEYBOARD     STD-710. 
+ 472       SET-DECLARATIVES DC1. 
+ 473       move 0 to ES-MODEM-POLL                   ; Coneccion directa. 
+ 474       exit. 
+ 475    
+ 476   INIT-COMMODE. 
+ 477   ;------------ 
+ 478       clear 
+ 479       message  1, ' TwoWay Ver 1.0 ' 
+ 480       wait 5 tenths 
+ 481       message 16, '  Comunico Via  ' 
+ 482       if COMM-MODE not = 0                     ; no es directa 
+ 483          move COMM-MODE to ES-MODEM-POLL 
+ 484          goto INIT-COMMODE-EXIT. 
+ 485       move 'I2021X' to FILE-NAME 
+ 486       open ref LIBRARY-FILE 
+ 487            when OK move 1 to ES-MODEM-POLL 
+ 488                    goto INIT-COMMODE-EXIT. 
+ 489    
+ 490   INIT-COMMODE-10. 
+ 491   ;--------------- 
+ 492       move 'SNAP1X' to FILE-NAME 
+ 493       open ref LIBRARY-FILE 
+ 494            when OK move 2 to ES-MODEM-POLL 
+ 495                    load LIBRARY-FILE. 
+ 496    
+ 497   INIT-COMMODE-EXIT. 
+ 498   ;----------------- 
+ 499       examine ES-MODEM-POLL 
+ 500           when 0 message 33, '*** DIRECTA. ***'. 
+ 501           when 1 message 33, ' *** MODEM. *** '. 
+ 502           when 2 message 33, '*** POLLING. ***'. 
+ 503       wait 6 tenths. 
+ 504       exit. 
+ 505    
+ 506   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 507   ;ณ                     OPEN LIST OF FILES PASSED to 'UPLOAD'                  ณ 
+ 508   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 509   OPEN-LIST-A100. 
+ 510   ;-------------- 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   11 
+COMPILATION OF: TWO-WAY.tca 
+ 511       move 'FILELIST' to FILE-NAME. 
+ 512       open ref FILELIST-F 
+ 513            when ER alarm 
+ 514                    message 17, '    FILELIST    ' 
+ 515                    message 33, ' NO ENCONTRADO !' 
+ 516                    wait 2 seconds 
+ 517                    clear 
+ 518                    move ER to LAST-KEY. 
+ 519       exit. 
+ 520    
+ 521   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 522   ;ณ      Verifico validez de parametros pasados en 'FILELIST' y los salvo      ณ 
+ 523   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 524   FILE-CHK-A200. 
+ 525   ;------------- 
+ 526       seek first FILELIST-F 
+ 527       read FILELIST-F 
+ 528       check TIPO-HOST-1 with VALID-HOST-CHK. 
+ 529             when ER message 49, ' Host no Valido ' 
+ 530                     goto FILE-CHK-A230. 
+ 531    
+ 532   FILE-CHK-A210. 
+ 533   ;------------- 
+ 534       check VELOCIDAD-1 with VALID-BAUD-CHK. 
+ 535             when ER clear 
+ 536                     message 17, '   Baud  Rate   ' 
+ 537                     message 33, '   No  Valido   ' 
+ 538                     next. 
+ 539       exit. 
+ 540    
+ 541   FILE-CHK-A230. 
+ 542   ;------------- 
+ 543       alarm 
+ 544       wait 1 second. 
+ 545       move ER to LAST-KEY. 
+ 546       exit. 
+ 547    
+ 548   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 549   ;ณ                      Coneccion fisica y logica al HOST                     ณ 
+ 550   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 551   LOGON-A300. 
+ 552   ;---------- 
+ 553       examine ES-MODEM-POLL 
+ 554            when 0 next.                        ; Coneccion DIRECTA. 
+ 555          ; when 1 move '12' to VELOCIDAD-1     ; Coneccion con MODEM... 
+ 556          ;        perform ARRANGE-NUMBER       ; ...y arreglo numero telefonico. 
+ 557          ;        next. 
+ 558            when 2 execute SNAP-INIT-232.       ; Es POLLING... 
+ 559                                                ; ...e inicializo SNAP. 
+ 560    
+ 561   LOGON-A310. 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   12 
+COMPILATION OF: TWO-WAY.tca 
+ 562   ;---------- 
+ 563       clear 
+ 564       message 17, 'Esperando DSR...' 
+ 565       examine VELOCIDAD-1                         ; Coneccion Fisica al HOST. 
+ 566         ; when '12' perform VERIFICO-MEDIO        ; 1200 Baudios. 
+ 567         ;           connect B-1200-COM. 
+ 568           when '96' if ES-MODEM-POLL = 2 
+ 569                        connect SNAP-9600-COM      ; 9600 Baudios. 
+ 570                     else 
+ 571                        connect B-9600-COM. 
+ 572                end-when 
+ 573       no-op. 
+ 574           when ER alarm                            ; Una falla en  'CONNECT' 
+ 575                   clear 
+ 576                   message 17, '  DSR   PERDIDO ' 
+ 577                   wait 1 second 
+ 578                   exit. 
+ 579    
+ 580   LOGON-A320. 
+ 581   ;---------- 
+ 582       examine ES-MODEM-POLL 
+ 583           when 0 next.                             ; Directo. 
+ 584         ; when 1 perform DIAL-NUMBER               ; Modem, y ... 
+ 585         ;             when ER exit.                ; ...disco numero ingresado. 
+ 586         ;        next. 
+ 587         ; when 2 move IDENTIF-PTC to TERMINAL-ID   ; Polling. 
+ 588         ;        show POLL-ID-S 
+ 589         ;        execute WAIT-FOR-POLL-SNAP using TERMINAL-ID 
+ 590         ;             when ER loop. 
+ 591         ;      end-when 
+ 592    
+ 593   LOGON-SIGN-ON. 
+ 594   ;------------- 
+ 595       perform SEND-SIGN-ON-B200                  ; Coneccion logica al PC. 
+ 596       exit.                                      ; Buen exit. 
+ 597    
+ 598   ;VERIFICO-MEDIO. 
+ 599   ;;-------------- 
+ 600   ;    clear. 
+ 601   ;    message  17, 'Discado  Automat'. 
+ 602   ;    message  33, '    Yes / No    '. 
+ 603   ;    action 
+ 604   ;       when ENTER message 49, '   *** SI ***   ' 
+ 605   ;                  move 1 to AUTOMAT 
+ 606   ;                  exit. 
+ 607   ;       when YES   message 49, '   *** SI ***   ' 
+ 608   ;                  move 1 to AUTOMAT 
+ 609   ;                  exit. 
+ 610   ;       when NO    message 49, '   *** NO ***   ' 
+ 611   ;                  wait 5 tenths 
+ 612   ;                  move 0 to AUTOMAT 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   13 
+COMPILATION OF: TWO-WAY.tca 
+ 613   ;                  clear 
+ 614   ;                  message  1, 'Disque Numero de' 
+ 615   ;                  message 17, '  Telefono y    ' 
+ 616   ;                  message 33, ' Presione ENTER ' 
+ 617   ;                  action 
+ 618   ;                  exit. 
+ 619   ;    loop. 
+ 620    
+ 621   ;;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 622   ;;ณ                       Arreglo Numero Telefonico a Discar                   ณ 
+ 623   ;;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 624   ARRANGE-NUMBER. 
+ 625   ;;-------------- 
+ 626   ;    move num-area     to area-ws. 
+ 627   ;    move num-telefono to fono-largo-7. 
+ 628   ;    move telefono     to buffer-ws. 
+ 629   ;    move 0            to largo-fono. 
+ 630   ;    move ' '          to telefono-a1. 
+ 631   ;    move ' '          to telefono-a2. 
+ 632   ;    move ' '          to telefono-a3. 
+ 633   ;    move ' '          to telefono-a4. 
+ 634   ;    move ' '          to telefono-a5. 
+ 635   ; 
+ 636   ;    move ' '          to telefono-b1. 
+ 637   ;    move ' '          to telefono-b2. 
+ 638   ;    move ' '          to telefono-b3. 
+ 639   ;    move ' '          to telefono-b4. 
+ 640   ;    move ' '          to telefono-b5. 
+ 641   ; 
+ 642   ;    move ' '          to telefono-c1. 
+ 643   ;    move ' '          to telefono-c2. 
+ 644   ;    move ' '          to telefono-c3. 
+ 645   ;    move ' '          to telefono-c4. 
+ 646   ;    move ' '          to telefono-c5. 
+ 647   ; 
+ 648   ;; Verifico el largo del numero telefonico ( 7,6,5,4,3 ) 
+ 649   ; 
+ 650   ;    if fono-1-ws = '0'                           ; fono largo 6. 
+ 651   ;       move 1 to ph-len-type 
+ 652   ;       if fono-2-ws = '0'                        ; fono largo 5. 
+ 653   ;          move 2 to ph-len-type 
+ 654   ;          if fono-3-ws = '0'                     ; fono largo 4. 
+ 655   ;             move 3 to ph-len-type 
+ 656   ;             if fono-4-ws = '0'                  ; fono largo 3. 
+ 657   ;                move 4 to ph-len-type 
+ 658   ;             end-if 
+ 659   ;          end-if 
+ 660   ;       end-if 
+ 661   ;    else 
+ 662   ;       move 0 to ph-len-type                     ; fono largo 7. 
+ 663   ;    end-if 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   14 
+COMPILATION OF: TWO-WAY.tca 
+ 664   ; 
+ 665   ;; Verifico el area ( Local, Remota, Hacia Santiago ) 
+ 666   ; 
+ 667   ;    if area-ws = '000' 
+ 668   ;       no-op                                     ; Local 
+ 669   ;    else 
+ 670   ;       if area-ws = '002'                        ; Remota a Santiago 
+ 671   ;          add 20 to ph-len-type 
+ 672   ;       else 
+ 673   ;          add 10 to ph-len-type                  ; Remota 
+ 674   ;       end-if 
+ 675   ;    end-if 
+ 676   ;;   perform JUNTA-AREA-TELEFONO. 
+ 677   ;    exit. 
+ 678   ; 
+ 679   ;JUNTA-AREA-TELEFONO. 
+ 680   ;;------------------- 
+ 681   ;    examine ph-len-type 
+ 682   ;         when 0 move fono-largo-7 to fono-a1 
+ 683   ;                move 7            to largo-fono. 
+ 684   ;         when 1 move fono-largo-6 to fono-a2 
+ 685   ;                move 6            to largo-fono. 
+ 686   ;         when 2 move fono-largo-5 to fono-a3 
+ 687   ;                move 5            to largo-fono. 
+ 688   ;         when 3 move fono-largo-4 to fono-a4 
+ 689   ;                move 4            to largo-fono. 
+ 690   ;         when 4 move fono-largo-3 to fono-a5 
+ 691   ;                move 3            to largo-fono. 
+ 692    
+ 693   ;JUNTA-AREA-001. 
+ 694   ;;-------------- 
+ 695   ;    examine ph-len-type 
+ 696   ;         when 10 move area-ws      to area-b1 
+ 697   ;                 move fono-largo-7 to fono-b1 
+ 698   ;                 move 10           to largo-fono. 
+ 699   ;         when 11 move area-ws      to area-b2 
+ 700   ;                 move fono-largo-6 to fono-b2 
+ 701   ;                 move 9            to largo-fono. 
+ 702   ;         when 12 move area-ws      to area-b3 
+ 703   ;                 move fono-largo-5 to fono-b3 
+ 704   ;                 move 8            to largo-fono. 
+ 705   ;         when 13 move area-ws      to area-b4 
+ 706   ;                 move fono-largo-4 to fono-b4 
+ 707   ;                 move 7            to largo-fono. 
+ 708   ;         when 14 move area-ws      to area-b5 
+ 709   ;                 move fono-largo-3 to fono-b5 
+ 710   ;                 move 6            to largo-fono. 
+ 711    
+ 712   ;JUNTA-AREA-002. 
+ 713   ;;-------------- 
+ 714   ;    examine ph-len-type 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   15 
+COMPILATION OF: TWO-WAY.tca 
+ 715   ;         when 20 move area-2-ws    to area-c1 
+ 716   ;                 move fono-largo-7 to fono-c1 
+ 717   ;                 move 9            to largo-fono. 
+ 718   ;         when 21 move area-2-ws    to area-c2 
+ 719   ;                 move fono-largo-6 to fono-c2 
+ 720   ;                 move 8            to largo-fono. 
+ 721   ;         when 22 move area-2-ws    to area-c3 
+ 722   ;                 move fono-largo-5 to fono-c3 
+ 723   ;                 move 7            to largo-fono. 
+ 724   ;         when 23 move area-2-ws    to area-c4 
+ 725   ;                 move fono-largo-4 to fono-c4 
+ 726   ;                 move 6            to largo-fono. 
+ 727   ;         when 24 move area-2-ws    to area-c5 
+ 728   ;                 move fono-largo-3 to fono-c5 
+ 729   ;                 move 5            to largo-fono. 
+ 730   ;    exit. 
+ 731    
+ 732   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 733   ;ณ                    Discado del Numero Telefonico al HOST                   ณ 
+ 734   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 735   ;DIAL-NUMBER. 
+ 736   ;;----------- 
+ 737   ;    if automat = 0 exit. 
+ 738   ;    clear. 
+ 739   ;    message 17, 'Esperando Linea.'. 
+ 740   ;    message 33, '................'. 
+ 741   ;    check-carrier                               ; Espero tono de linea OK 
+ 742   ;        when ER beep 
+ 743   ;                message  1, '****************' 
+ 744   ;                message 17, '   Imposible    ' 
+ 745   ;                message 33, '  Tomar  linea  ' 
+ 746   ;                message 49, '****************' 
+ 747   ;                action 
+ 748   ;                move ER to LAST-KEY 
+ 749   ;                exit. 
+ 750   ; 
+ 751   ;DIAL-NUMBER-001. 
+ 752   ;;--------------- 
+ 753   ;    show ENTRY-S. 
+ 754   ;    MESSAGE 49, 'Espere..........' 
+ 755   ;    examine PH-LEN-TYPE 
+ 756   ;         when 00 dial using TELEFONO-A1, LARGO-FONO.   ; Largo 7  Local. 
+ 757   ;         when 01 dial using TELEFONO-A2, LARGO-FONO.   ; Largo 6  Local. 
+ 758   ;         when 02 dial using TELEFONO-A3, LARGO-FONO.   ; Largo 5  Local. 
+ 759   ;         when 03 dial using TELEFONO-A4, LARGO-FONO.   ; Largo 4  Local. 
+ 760   ;         when 04 dial using TELEFONO-A5, LARGO-FONO.   ; Largo 3  Local. 
+ 761   ;         when 10 dial using TELEFONO-B1, LARGO-FONO.   ; Largo 10 Remoto. 
+ 762   ;         when 11 dial using TELEFONO-B2, LARGO-FONO.   ; Largo 9  Remoto. 
+ 763   ;         when 12 dial using TELEFONO-B3, LARGO-FONO.   ; Largo 8  Remoto. 
+ 764   ;         when 13 dial using TELEFONO-B4, LARGO-FONO.   ; Largo 7  Remoto. 
+ 765   ;         when 14 dial using TELEFONO-B5, LARGO-FONO.   ; Largo 6  Remoto. 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   16 
+COMPILATION OF: TWO-WAY.tca 
+ 766   ;         when 20 dial using TELEFONO-C1, LARGO-FONO.   ; Largo 9  Remoto a Stgo 
+ 767   ;         when 21 dial using TELEFONO-C2, LARGO-FONO.   ; Largo 8  Remoto a Stgo 
+ 768   ;         when 22 dial using TELEFONO-C3, LARGO-FONO.   ; Largo 7  Remoto a Stgo 
+ 769   ;         when 23 dial using TELEFONO-C4, LARGO-FONO.   ; Largo 6  Remoto a Stgo 
+ 770   ;         when 24 dial using TELEFONO-C5, LARGO-FONO.   ; Largo 5  Remoto a Stgo 
+ 771   ;    no-op. 
+ 772   ;         when OK beep 
+ 773   ;                 message 49, ' -- EN LINEA -- ' 
+ 774   ;                 wait 5 tenths 
+ 775   ;                 exit. 
+ 776   ;     clear. 
+ 777   ;     beep. 
+ 778   ;     message 17,  ' Fallo  discado '. 
+ 779   ;     wait 1 second. 
+ 780   ;     move ER to LAST-KEY. 
+ 781   ;     exit. 
+ 782   ; 
+ 783   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+ 784   ;ณ                    SEND/RCVE ALL FILES LISTED IN 'FILELIST'                ณ 
+ 785   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+ 786   SEND-RCVE-A400. 
+ 787   ;-------------- 
+ 788       move '08'        to PIC-COMMAND-WS  ; Executo SUBMIT FILES. 
+ 789       move SUBMIT-FILE to FILENAME-PC-WS  ; Nombre del SUBMIT FILE. 
+ 790       move '.SCO'      to FILE-EXTENTION 
+ 791       message 33, 'Codigo --> Envio'. 
+ 792       perform SEND-RCVE-COMMAND           ; Envio nombre y recibo staus. 
+ 793               when ER show SUBMIT-FILE-NAME 
+ 794                       message 17, '   Codigo No    ' 
+ 795                       message 33, '   Aceptado     ' 
+ 796                       action 
+ 797                       move ER to LAST-KEY 
+ 798                       clear 
+ 799                       exit. 
+ 800       beep 
+ 801       message 33, 'Coneccion Ok ...'. 
+ 802       move 0 to lOperacion 
+ 803    
+ 804   SEND-RCVE-A410. 
+ 805   ;-------------- 
+ 806       fill PIC-BUFFER-WR with ' ' 
+ 807       perform RCVE-COMMAND                        ; Quedo en  modo  recepcion  de 
+ 808               when ER exit.                       ; comandos (MASTER). 
+ 809       move PIC-COMMAND-WS to COMANDO 
+ 810       examine COMANDO 
+ 811               when  2 move OK to COM-ERR                     ; Logoff 
+ 812                       exit. 
+ 813               when  3 move 1 to lOperacion 
+ 814                       perform OPEN-FILE-C000                 ; Recibo del PC. 
+ 815                               when ER exit. 
+ 816                       perform RCVE-DATA-C100. 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   17 
+COMPILATION OF: TWO-WAY.tca 
+ 817               when  5 perform OPEN-FILE-C000 
+ 818                               when ER exit. 
+ 819                       perform RCVE-DATA-C100. 
+ 820               when  6 perform SEND-BAD-STATUS. 
+ 821               when 10 perform OPEN-FILE-C000 
+ 822                               when ER perform SEND-BAD-STATUS 
+ 823                                       loop. 
+ 824                       perform SEND-DATA-C100. 
+ 825               when 11 perform OPEN-FILE-C000 
+ 826                               when ER perform SEND-BAD-STATUS 
+ 827                                       loop. 
+ 828                       perform SEND-DATA-C100. 
+ 829               when 12 goto SEND-RCVE-A400. 
+ 830               when 14 perform OPEN-FILE-C000 
+ 831                       if last-key = OK 
+ 832                          show FILE-HEADER-BORRA-S 
+ 833                          perform BORRA-DATA-C100 ; Borrar archivo de PTC 
+ 834                       end-if 
+ 835                       perform SEND-GOOD-STATUS 
+ 836               end-when 
+ 837    
+ 838               when 18 if FUNCTION-00-WS = '02'               ; Logoff SNAP. 
+ 839                          move 0  to GP-TIMER 
+ 840                          move OK to COM-ERR 
+ 841                          exit. 
+ 842                    end-when 
+ 843       loop. 
+ 844    
+ 845   ;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==; 
+ 846   ;*                   OPEN  A  FILE  to  SEND/RCVE                   * 
+ 847   ;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==; 
+ 848   OPEN-FILE-C000. 
+ 849   ;-------------- 
+ 850       move FILENAME-PC-WS to FILE-NAME               ; Tomo nombre de Archivo. 
+ 851       move FILE-EXT-PC-WS to GLOBAL-F:FD-TYPE 
+ 852       examine COMANDO 
+ 853            when  3 perform OPEN-UPDATE. 
+ 854            when  5 perform OPEN-UPDATE. 
+ 855            when 10 perform OPEN-REF. 
+ 856            when 11 perform OPEN-REF. 
+ 857            when 14 perform OPEN-UPDATE. 
+ 858       exit. 
+ 859    
+ 860   OPEN-REF. 
+ 861   ;-------- 
+ 862       open ref GLOBAL-F            ; Open file we set up to get. 
+ 863            when ER beep 
+ 864                    show FILE-HEADER-SEND-S 
+ 865                    message 1, 4,  'No esta archivo ' 
+ 866                    wait 1 second 
+ 867                    clear 15. 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   18 
+COMPILATION OF: TWO-WAY.tca 
+ 868       exit. 
+ 869    
+ 870   OPEN-UPDATE. 
+ 871   ;----------- 
+ 872       open update GLOBAL-F 
+ 873            when ER create GLOBAL-F 
+ 874                    loop. 
+ 875       reset GLOBAL-F 
+ 876       exit. 
+ 877    
+ 878   ;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==; 
+ 879   ;*           SEND   HEADER   AND   DATA   FOR   FILE                * 
+ 880   ;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==; 
+ 881   SEND-DATA-C100. 
+ 882   ;-------------- 
+ 883       perform SEND-GOOD-STATUS 
+ 884       beep 
+ 885       show FILE-HEADER-SEND-S 
+ 886       move '03' to PIC-COMMAND-WS                 ; Aqui, debe ser TDS o PC. 
+ 887    
+ 888   SEND-DATA-C110. 
+ 889   ;-------------- 
+ 890       if ES-MODEM-POLL = 2 
+ 891          execute BID-SNAP 
+ 892       else 
+ 893          bid.                                     ; Pido la linea para enviar 
+ 894             when ER perform SHOW-BID-ERROR        ; comandos. 
+ 895                     move ER to LAST-KEY 
+ 896                     exit. 
+ 897       send-etb COMANDOS-WS 
+ 898             when ER next. 
+ 899       if PIC-COMMAND-WS = '03' 
+ 900          SEND-ETX GLOBAL-F                   ; Don't unpack code sent to TDS/PC. 
+ 901          next. 
+ 902       SEND-ETX unpack GLOBAL-F.              ; Unpack code sent to TDS/PC. 
+ 903    
+ 904   SEND-DATA-C120. 
+ 905   ;-------------- 
+ 906       when ER perform SHOW-COM-ER-D100 
+ 907               exit. 
+ 908       perform RCVE-COMMAND                  ; Receive response from host. 
+ 909               when ER next. 
+ 910       if PIC-COMMAND-WS = '80' 
+ 911   ;      erase GLOBAL-F                     ; Borra archivo transmitido al PC 
+ 912          move OK to LAST-KEY 
+ 913       else 
+ 914          clear 
+ 915          beep 
+ 916          message 1, 1, ' No hay espacio ' 
+ 917          message 1, 2, '   en el HOST   ' 
+ 918          wait 2 seconds 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   19 
+COMPILATION OF: TWO-WAY.tca 
+ 919          clear 
+ 920          next. 
+ 921       exit.                                 ; Good exit. 
+ 922    
+ 923   SEND-DATA-C130. 
+ 924   ;-------------- 
+ 925       move ER to LAST-KEY.             ; Return ER to caller. 
+ 926       exit. 
+ 927    
+ 928    
+ 929   ;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==; 
+ 930   ;           ENVIO  ENCABEZADO  Y  RECIBO  DATA  DE  ARCHIVO         ; 
+ 931   ;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==; 
+ 932   RCVE-DATA-C100. 
+ 933   ;-------------- 
+ 934       beep 
+ 935       show FILE-HEADER-RCVE-S 
+ 936    
+ 937   RCVE-DATA-C120. 
+ 938   ;-------------- 
+ 939       if PIC-COMMAND-WS = '03' 
+ 940          receive-block GLOBAL-F 
+ 941       else 
+ 942          receive-block pack GLOBAL-F. 
+ 943       no-op 
+ 944          when ER    perform SHOW-COM-ER-D100 
+ 945                     next. 
+ 946          when EXTIN loop. 
+ 947          when MEM   ; erase GLOBAL-F 
+ 948                     clear 
+ 949                     beep 
+ 950                     message 1, 1, 'No hay Suficient' 
+ 951                     message 1, 2, ' >  MEMORIA   < ' 
+ 952                     wait 2 seconds 
+ 953                     clear 
+ 954                     next. 
+ 955       perform SEND-GOOD-STATUS            ; ACk de recibo. 
+ 956               when ER next. 
+ 957       move OK to LAST-KEY. 
+ 958       exit.                               ; Good exit. 
+ 959    
+ 960   RCVE-DATA-C130. 
+ 961   ;-------------- 
+ 962        move ER to LAST-KEY 
+ 963        exit. 
+ 964    
+ 965    
+ 966   ;********************************************************************; 
+ 967   ;*             WAIT  FOR  A  RESPONSE  FROM  THE  HOST               ; 
+ 968   ;********************************************************************; 
+ 969   RCVE-COMMAND.                           ; Receive command from host. 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   20 
+COMPILATION OF: TWO-WAY.tca 
+ 970   ;------------ 
+ 971       if ES-MODEM-POLL = 2 
+ 972          execute WAIT-FOR-BID-SNAP 
+ 973       else 
+ 974          wait-for-bid.               ; Wait 10 secs. for ENQ. 
+ 975            when ER  clear 
+ 976                     beep 
+ 977                     message 1, 'NO BID RECEIVED ' 
+ 978                     next. 
+ 979            when EOF clear 
+ 980                     beep 
+ 981                     message 1, 'HANG UP RECEIVED' 
+ 982                     next. 
+ 983       fill PIC-BUFFER-WR WITH ' '. 
+ 984       receive-block PIC-BUFFER-WR.        ; Get command from host. 
+ 985            when ER  perform SHOW-COM-ER-D100 
+ 986                     next. 
+ 987       exit.                               ; Good exit. 
+ 988    
+ 989   RECV-CMD-D010. 
+ 990   ;------------- 
+ 991       alarm 
+ 992       wait 5 tenths 
+ 993       clear 16 
+ 994       move ER to LAST-KEY 
+ 995       exit.                            ; Error exit. 
+ 996    
+ 997   ;********************************************************************; 
+ 998   ;                  ENVIO  ACK  DE  RECIBO AL  HOST                   ; 
+ 999   ;********************************************************************; 
+1000   SEND-COMMAND. 
+1001   ;------------ 
+1002       if ES-MODEM-POLL = 2 
+1003          execute BID-SNAP 
+1004       else 
+1005          bid                                          ; Pido la linea para enviar 
+1006            when ER bid 
+1007                 when ER bid 
+1008                      when ER perform SHOW-BID-ERROR   ; comandos 
+1009                              move ER to LAST-KEY 
+1010                              exit 
+1011                      end-when 
+1012                 end-when 
+1013            end-when 
+1014       end-if 
+1015       send-etx PIC-BUFFER-WR 
+1016            when ER perform SHOW-COM-ER-D100 
+1017                    move ER to LAST-KEY. 
+1018       exit. 
+1019    
+1020   SEND-RCVE-COMMAND. 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   21 
+COMPILATION OF: TWO-WAY.tca 
+1021   ;----------------- 
+1022       perform SEND-COMMAND 
+1023               when ER exit. 
+1024       if ES-MODEM-POLL = 2 
+1025          execute WAIT-FOR-BID-SNAP 
+1026       else 
+1027          wait-for-bid.                       ; Espera por un ENQ y luego envกa 
+1028             when ER clear                    ; un ACK0 (EOT si recibe NAK). 
+1029                     beep 
+1030                     message 1, 'No recibido BID ' 
+1031                     wait 1 second 
+1032                     clear 
+1033                     exit. 
+1034       receive-block PIC-COMMAND-WS 
+1035             when ER clear 
+1036                     beep 
+1037                     message 1,  'Error Recepcion ' 
+1038                     wait 1 second 
+1039                     clear 16 
+1040                     exit. 
+1041       if PIC-COMMAND-WS NE '80' 
+1042          move ER to LAST-KEY 
+1043       else 
+1044          move OK to LAST-KEY. 
+1045       exit. 
+1046    
+1047    
+1048   ;ีออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออธ 
+1049   ;ณ                    USED  WITH  'PC'.   SEND  SIGN  ON.                     ณ 
+1050   ;ิออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออพ 
+1051   SEND-SIGN-ON-B200. 
+1052   ;----------------- 
+1053       clear.                              ; Borro display durante 
+1054       beep 
+1055       message 17, 'Enviando codigo.'. 
+1056       fill PIC-BUFFER-WR WITH ' '.        ; comunicacion.. 
+1057       move '01'        to PIC-COMMAND-WS  ; Sign on command. 
+1058       move '00'        to FUNCTION-00-WS 
+1059       move 'X'         to TERMINAL-ID-WS 
+1060       move 'AMG'       to VND-DESC-WS     ; Password de acceso. 
+1061       move SUBMIT-FILE to NUM-VEND-WS     ; Codigo del vendedor. 
+1062       perform SEND-RCVE-COMMAND           ; Envio comando Y recibo status. 
+1063            when OK beep 
+1064                    message 17, 'Codigo Aceptado.'. 
+1065       exit.                               ; Good exit. 
+1066    
+1067   ;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==; 
+1068   ;                       SIGN  OFF  WITH  HOST                       ; 
+1069   ;=-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==; 
+1070    
+1071   SIGN-OFF-POLL. 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   22 
+COMPILATION OF: TWO-WAY.tca 
+1072       fill PIC-BUFFER-WR WITH ' ' 
+1073       move '02' to PIC-COMMAND-WS         ; Sign-off command. 
+1074       move '00' to FUNCTION-00-WS 
+1075       move 'X'  to TERMINAL-ID-WS 
+1076       perform SEND-COMMAND 
+1077       exit. 
+1078    
+1079    
+1080   ;********************************************************************; 
+1081   ;*                 ENVIO  ACK  DE  RECIBO AL  HOST                   ; 
+1082   ;********************************************************************; 
+1083   SEND-GOOD-STATUS. 
+1084   ;---------------- 
+1085       move '80' to PIC-COMMAND-WS        ; Buen status. 
+1086       perform SEND-COMMAND-STATUS 
+1087              when ER clear 
+1088                      message  1, ' Error en envio ' 
+1089                      message 17, '   de  status   ' 
+1090                      wait 1 second 
+1091                      clear. 
+1092       exit. 
+1093    
+1094   ;********************************************************************; 
+1095   ;*                 ENVIO  NACK  DE  RECIBO AL  HOST                  ; 
+1096   ;********************************************************************; 
+1097   SEND-BAD-STATUS. 
+1098   ;--------------- 
+1099       fill PIC-BUFFER-WR WITH ' '. 
+1100       move '81' to PIC-COMMAND-WS                           ; Mal status. 
+1101       perform SEND-COMMAND-STATUS 
+1102               when ER clear 
+1103                       message  1, ' Error en envio ' 
+1104                       message 17, '  de  status    ' 
+1105                       wait 1 second 
+1106                       clear. 
+1107       exit. 
+1108    
+1109   ;********************************************************************; 
+1110   ;*                 ENVIO  BID  DE  STATUS  AL  HOST                  ; 
+1111   ;********************************************************************; 
+1112    
+1113   SEND-COMMAND-STATUS. 
+1114   ;------------------- 
+1115       if ES-MODEM-POLL = 2 
+1116          execute BID-SNAP 
+1117       else 
+1118          bid. 
+1119             when ER exit. 
+1120       send-etx PIC-COMMAND-WS 
+1121             when ER perform SHOW-COM-ER-D100 
+1122                     move ER to LAST-KEY. 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   23 
+COMPILATION OF: TWO-WAY.tca 
+1123       exit. 
+1124    
+1125   PIDE-SALIDA. 
+1126       clear 
+1127       message 1, 2, 'Vaciado Completo' 
+1128       message 1, 3, 'Vuelve menu(Y/N)' 
+1129       action 
+1130              when YES clear 
+1131                       exit. 
+1132       loop. 
+1133    
+1134   $eject 
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:11 1996
+    PAGE:   24 
+COMPILATION OF: TWO-WAY.tca 
+1135   ;******************************************************************** 
+1136   ;*      show  USER  THE  REASON  FOR  A  COMMUNICATION  ERROR       * 
+1137   ;******************************************************************** 
+1138   SHOW-COM-ER-D100. 
+1139   ;---------------- 
+1140       clear. 
+1141       examine COM-ERR.                                ; Registro contiene causa. 
+1142           when 1  message 17, 'ERROR DE PARIDAD'.     ; Error de paridad. 
+1143           when 2  message 17, ' MUCHOS CARACTS '.     ; Demasiados chars. rcvd. 
+1144           when 3  message 17, '  DSR  PERDIDO  '.     ; Disconnected, lost DSR. 
+1145           when 4  message 17, '  ERROR de BCC  '.     ; BCC error. 
+1146           when 5  message 17, '  1ST CHAR ERR  '.     ; First char error/no data. 
+1147           when 6  message 17, ' LAST CHAR  ERR '.     ; Last char error. 
+1148           when 7  message 17, ' CHEQUEO DE ECO '.     ; Echo check, Network only. 
+1149           when 8  message 17, '  RCVR OVERRUN  '.     ; Receiver overrun. 
+1150           when 9  message 17, '  FRAMING  ERR  '.     ; Framing error. 
+1151           when 10 message 17, ' MUCHOS  RETRYS '.     ; Too many retrys. 
+1152       wait  1  second. 
+1153       clear. 
+1154       move ER to LAST-KEY. 
+1155       exit. 
+1156    
+1157   ;********************************************************************; 
+1158   ;               GIVE   USER   A   BID   ERROR   MESSAGE               ; 
+1159   ;********************************************************************; 
+1160   SHOW-BID-ERROR. 
+1161   ;-------------- 
+1162       alarm. 
+1163       message 49, '  Error  Bid !  '. 
+1164       wait 2 seconds. 
+1165       clear 15. 
+1166       move ER to LAST-KEY. 
+1167       exit. 
+1168    
+1169   BORRA-DATA-C100. 
+1170   ;--------------- 
+1171       erase GLOBAL-F 
+1172       move OK to LAST-KEY 
+1173   EXIT. 
+1174    
+1175   END-OF-PROGRAM. 
+
+SOURCE LINES: 1175 (0)
+OBJECT CODE SIZE IS  2907 BYTES
+WORKING STORAGE SIZE IS   171 BYTES
+
+NO FATAL ERRORS 
+NO WARNINGS GENERATED 
+END OF COMPILE  Tue May 07 22:32:18 1996
+
+
+TELXON TCAL COMPILER  VERSION 3.5  Tue May 07 22:32:18 1996
+    PAGE:   25 
+COMPILATION OF: TWO-WAY.tca 

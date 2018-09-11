@@ -1,0 +1,1 @@
+01Negocio Cerrado.002Sin Envases.....103Cambio de Giro..104Stock Lleno.....105Sin Dinero......006Otro............007No se mas.......0

@@ -1,0 +1,1 @@
+100001Cliente  esta  de   Cumpleanos..100002Prestar  una   Buena Atencion...100003    Cliente          Feliz......100004 No Pago Ultima      Compra.....100005     Regalar       Calendario...
